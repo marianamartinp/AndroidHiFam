@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.mariana.androidhifam.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment_to_registroFragment"
+            app:destination="@id/registroFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_gruposFragment"
+            app:destination="@id/gruposFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/registroFragment"
+        android:name="com.mariana.androidhifam.RegistroFragment"
+        android:label="fragment_registro"
+        tools:layout="@layout/fragment_registro" >
+        <action
+            android:id="@+id/action_registroFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/gruposFragment"
+        android:name="com.mariana.androidhifam.GruposFragment"
+        android:label="fragment_grupos"
+        tools:layout="@layout/fragment_grupos" >
+        <action
+            android:id="@+id/action_gruposFragment_to_albumesFragment"
+            app:destination="@id/albumesFragment" />
+        <argument
+            android:name="idUsuario"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/albumesFragment"
+        android:name="com.mariana.androidhifam.AlbumesFragment"
+        android:label="fragment_albumes"
+        tools:layout="@layout/fragment_albumes" >
+        <action
+            android:id="@+id/action_albumesFragment_to_publicacionesFragment"
+            app:destination="@id/publicacionesFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/publicacionesFragment"
+        android:name="com.mariana.androidhifam.PublicacionesFragment"
+        android:label="fragment_publicaciones"
+        tools:layout="@layout/fragment_publicaciones" >
+        <action
+            android:id="@+id/action_publicacionesFragment_to_publicacionFragment"
+            app:destination="@id/publicacionFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/publicacionFragment"
+        android:name="com.mariana.androidhifam.PublicacionFragment"
+        android:label="fragment_publicacion"
+        tools:layout="@layout/fragment_publicacion" />
+</navigation>

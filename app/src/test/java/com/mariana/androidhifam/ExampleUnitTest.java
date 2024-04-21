@@ -1,4 +1,4 @@
-package com.mariana.hifam;
+package com.mariana.androidhifam;
 
 import org.junit.Test;
 

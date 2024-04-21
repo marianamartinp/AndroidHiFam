@@ -1,3 +1,12 @@
 <resources>
-    <string name="app_name">AndroidHiFam</string>
+    <string name="app_name">HiFam</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="tituloGrupos">Mis Familias</string>
+    <string name="nuevoGrupo">Nueva Familia</string>
+    <string name="nuevoAlbum">Nuevo Álbum</string>
+    <string name="nuevaPublicacion">Nueva Publicacion</string>
+
+    <string name="btnLogin">Iniciar Sesión</string>
+    <string name="descripcionGrupo">Grupo</string>
 </resources>
