@@ -12,10 +12,18 @@
         tools:layout="@layout/fragment_login" >
         <action
             android:id="@+id/action_loginFragment_to_registroFragment"
-            app:destination="@id/registroFragment" />
+            app:destination="@id/registroFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
         <action
             android:id="@+id/action_loginFragment_to_gruposFragment"
-            app:destination="@id/gruposFragment" />
+            app:destination="@id/gruposFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/registroFragment"
@@ -24,19 +32,27 @@
         tools:layout="@layout/fragment_registro" >
         <action
             android:id="@+id/action_registroFragment_to_loginFragment"
-            app:destination="@id/loginFragment" />
+            app:destination="@id/loginFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/gruposFragment"
         android:name="com.mariana.androidhifam.GruposFragment"
         android:label="fragment_grupos"
         tools:layout="@layout/fragment_grupos" >
-        <action
-            android:id="@+id/action_gruposFragment_to_albumesFragment"
-            app:destination="@id/albumesFragment" />
         <argument
             android:name="idUsuario"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_gruposFragment_to_albumesFragment"
+            app:destination="@id/albumesFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/albumesFragment"
@@ -45,7 +61,11 @@
         tools:layout="@layout/fragment_albumes" >
         <action
             android:id="@+id/action_albumesFragment_to_publicacionesFragment"
-            app:destination="@id/publicacionesFragment" />
+            app:destination="@id/publicacionesFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/publicacionesFragment"
@@ -60,5 +80,5 @@
         android:id="@+id/publicacionFragment"
         android:name="com.mariana.androidhifam.PublicacionFragment"
         android:label="fragment_publicacion"
-        tools:layout="@layout/fragment_publicacion" />
+        tools:layout="@layout/fragment_publicacion"/>
 </navigation>

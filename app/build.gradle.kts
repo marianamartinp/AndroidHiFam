@@ -28,10 +28,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    dataBinding {
-        enable = true
-    }
-
     buildFeatures {
         dataBinding = true
     }
@@ -47,7 +43,11 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    //NavComponent
+    // FragmentContainerView
+    val fragVersion = "1.6.2"
+    implementation("androidx.fragment:fragment-ktx:$fragVersion")
+
+    // NavigationComponent
     val navVersion = "2.7.7"
     implementation("androidx.navigation:navigation-fragment-ktx:$navVersion")
     implementation("androidx.navigation:navigation-ui-ktx:$navVersion")

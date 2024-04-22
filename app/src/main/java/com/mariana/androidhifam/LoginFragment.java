@@ -14,9 +14,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.mariana.androidhifam.databinding.FragmentGruposBinding;
+import com.mariana.androidhifam.databinding.FragmentLoginBinding;
+
 public class LoginFragment extends Fragment {
 
-    Button btnLogin;
+    private FragmentLoginBinding binding;
 //    @Override
 //    public void onCreate(Bundle savedInstanceState) {
 //        super.onCreate(savedInstanceState);
@@ -29,14 +32,21 @@ public class LoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View root = inflater.inflate(R.layout.fragment_login, container, false);
-        btnLogin = root.findViewById(R.id.btnLogin);
-        btnLogin.setOnClickListener(v ->
-                findNavController(v).navigate(LoginFragmentDirections.actionLoginFragmentToGruposFragment(1889))
-        );
-        return root;
+        binding = FragmentLoginBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        binding.btnLogin.setOnClickListener(v ->
+                findNavController(v).navigate(LoginFragmentDirections.actionLoginFragmentToGruposFragment(1889))
+        );
+    }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }

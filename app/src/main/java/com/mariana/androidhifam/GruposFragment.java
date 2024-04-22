@@ -22,10 +22,10 @@ import java.util.ArrayList;
 
 public class GruposFragment extends Fragment {
 
-    GruposFragmentArgs gruposFragmentArgs;
-    FragmentGruposBinding binding;
-    ArrayList<String> nombresGrupos;
-    ArrayList<Integer> imagenesGrupos;
+    private GruposFragmentArgs gruposFragmentArgs;
+    private FragmentGruposBinding binding;
+    private ArrayList<String> nombresGrupos;
+    private ArrayList<Integer> imagenesGrupos;
 //    @Override
 //    public void onCreate(Bundle savedInstanceState) {
 //        super.onCreate(savedInstanceState);
@@ -40,8 +40,8 @@ public class GruposFragment extends Fragment {
         binding = FragmentGruposBinding.inflate(inflater, container, false);
 
         if (getArguments() != null) {
-            GruposFragmentArgs args = GruposFragmentArgs.fromBundle(getArguments());
-            Integer idUsuario = args.getIdUsuario();  // Extracting the string argument
+            gruposFragmentArgs = GruposFragmentArgs.fromBundle(getArguments());
+            Integer idUsuario = gruposFragmentArgs.getIdUsuario();  // Extracting the string argument
 
             // Use the argument as needed
             Log.d("GruposFragment", "Received argument: " + idUsuario);
@@ -70,6 +70,12 @@ public class GruposFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         ImageButton ib = view.findViewById(R.id.botonnuevo);
         ib.setOnClickListener(v -> anyadirPublicacion());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     public void anyadirPublicacion() {
