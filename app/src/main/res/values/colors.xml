@@ -2,7 +2,11 @@
 <resources>
     <color name="eggWhite">#eaeae9</color>
     <color name="lightOrange">#e3d2c4</color>
+    <color name="coralOrange">#dbbca1</color>
+    <color name="mediumOrange">#d4a781</color>
     <color name="orange">#bd743a</color>
     <color name="darkGrey">#464545</color>
     <color name="lightGrey">#bab7b5</color>
+    <color name="lighterGrey">#d9d9d9</color>
+    <color name="mediumGrey">#737373</color>
 </resources>

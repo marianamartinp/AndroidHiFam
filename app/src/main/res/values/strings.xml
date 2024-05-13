@@ -2,11 +2,37 @@
     <string name="app_name">HiFam</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="saludoUsuario">¡Hey, Usuario!</string>
     <string name="tituloGrupos">Mis Familias</string>
-    <string name="nuevoGrupo">Nueva Familia</string>
+    <string name="nuevaFamilia">Nueva Familia</string>
     <string name="nuevoAlbum">Nuevo Álbum</string>
-    <string name="nuevaPublicacion">Nueva Publicacion</string>
+    <string name="nuevaPublicacion">Nueva Publicación</string>
 
     <string name="btnLogin">Iniciar Sesión</string>
     <string name="descripcionGrupo">Grupo</string>
+    <string name="tituloComentarios">Comentarios</string>
+    <string name="tituloGrupo">Titulo de la familia</string>
+    <string name="tituloAlbum">Titulo del album</string>
+
+    <string name="miInfo">Mi informacion</string>
+    <string name="crearGrupo">Crear nuevo grupo</string>
+    <string name="ingresarEnGrupo">Ingresar en grupo existente</string>
+
+    <string name="verDetallesGrupo">Detalles del Grupo</string>
+    <string name="verIntegrantes">Integrantes del Grupo</string>
+    <string name="eliminarGrupo">Eliminar Grupo</string>
+
+    <string name="nuevaPublicacionAlbum">Álbum: Titulo álbum</string>
+    <string name="nuevaPublicacionTitulo">Escribe aquí un título</string>
+    <string name="nuevaPublicacionTexto">Añade aquí un poco de texto</string>
+
+    <string name="nuevaFamiliaTitulo">Escribe aquí un título</string>
+    <string name="nuevaFamiliaDescripcion">Escribe aquí una descripción</string>
+    <string name="miembrosFamilia">Miembros de la familia</string>
+    <string name="nuevaFamiliaAnyadirUsuario">Añade un nombre de usuario</string>
+    <string name="nuevaFamiliaDatos">Datos generales:</string>
+    <string name="nuevaFamiliaMiembros">Miembros de la familia:</string>
+
+    <string name="nombreUsuario">"@Usuario"</string>
+
 </resources>

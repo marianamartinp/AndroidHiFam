@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/usuarioFragment"
+        android:title="@string/miInfo"/>
+    <item
+        android:id="@+id/gruposFragment"
+        android:title="@string/tituloGrupos"/>
+
+</menu>

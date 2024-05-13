@@ -17,9 +17,10 @@ import android.widget.Button;
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 import com.mariana.androidhifam.databinding.FragmentLoginBinding;
 
-public class LoginFragment extends Fragment {
+public class LoginFragment extends Fragment implements View.OnClickListener {
 
     private FragmentLoginBinding binding;
+    private MainActivity activity;
 //    @Override
 //    public void onCreate(Bundle savedInstanceState) {
 //        super.onCreate(savedInstanceState);
@@ -39,14 +40,23 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        binding.btnLogin.setOnClickListener(v ->
-                findNavController(v).navigate(LoginFragmentDirections.actionLoginFragmentToGruposFragment(1889))
-        );
+        activity = (MainActivity) getActivity();
+        binding.btnLogin.setOnClickListener(this);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.btnLogin) {
+            int idUsuario = 1;
+            activity.setIdUsuario(idUsuario);
+            findNavController(v).navigate(LoginFragmentDirections.actionLoginFragmentToGruposFragment(idUsuario));
+        }
     }
 }

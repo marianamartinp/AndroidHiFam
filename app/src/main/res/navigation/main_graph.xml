@@ -16,14 +16,17 @@
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_loginFragment_to_gruposFragment"
             app:destination="@id/gruposFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
+            app:launchSingleTop="false"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/registroFragment"
@@ -52,7 +55,11 @@
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/gruposFragment" />
+        <action
+            android:id="@+id/action_gruposFragment_to_menuAnyadirGrupoFragment"
+            app:destination="@id/menuAnyadirGrupoFragment" />
     </fragment>
     <fragment
         android:id="@+id/albumesFragment"
@@ -66,6 +73,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
     </fragment>
     <fragment
         android:id="@+id/publicacionesFragment"
@@ -74,11 +84,122 @@
         tools:layout="@layout/fragment_publicaciones" >
         <action
             android:id="@+id/action_publicacionesFragment_to_publicacionFragment"
-            app:destination="@id/publicacionFragment" />
+            app:destination="@id/publicacionFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+        <argument
+            android:name="idAlbum"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_publicacionesFragment_to_publicacionesListaFragment"
+            app:destination="@id/publicacionesListaFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/albumesFragment"/>
+        <action
+            android:id="@+id/action_publicacionesFragment_to_nuevaPublicacionFragment"
+            app:destination="@id/nuevaPublicacionFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/publicacionFragment"
         android:name="com.mariana.androidhifam.PublicacionFragment"
         android:label="fragment_publicacion"
-        tools:layout="@layout/fragment_publicacion"/>
+        tools:layout="@layout/fragment_publicacion">
+        <argument android:name="idPublicacion"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/usuarioFragment"
+        android:name="com.mariana.androidhifam.UsuarioFragment"
+        android:label="fragment_usuario"
+        tools:layout="@layout/fragment_usuario" />
+    <fragment
+        android:id="@+id/nuevoGrupoFragment"
+        android:name="com.mariana.androidhifam.NuevoGrupoFragment"
+        android:label="fragment_nuevo_grupo"
+        tools:layout="@layout/fragment_nuevo_grupo" />
+    <fragment
+        android:id="@+id/ingresoGrupoFragment"
+        android:name="com.mariana.androidhifam.IngresoGrupoFragment"
+        android:label="fragment_ingreso_grupo"
+        tools:layout="@layout/fragment_ingreso_grupo" />
+    <dialog
+        android:id="@+id/menuAnyadirGrupoFragment"
+        android:name="com.mariana.androidhifam.MenuAnyadirGrupoFragment"
+        android:label="fragment_menu_anyadir_grupo"
+        tools:layout="@layout/fragment_menu_anyadir_grupo" >
+        <action
+            android:id="@+id/action_menuAnyadirGrupoFragment_to_gruposFragment"
+            app:destination="@id/gruposFragment" />
+        <action
+            android:id="@+id/action_menuAnyadirGrupoFragment_to_ingresoGrupoFragment"
+            app:destination="@id/ingresoGrupoFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+        <action
+            android:id="@+id/action_menuAnyadirGrupoFragment_to_nuevoGrupoFragment"
+            app:destination="@id/nuevoGrupoFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+    </dialog>
+    <fragment
+        android:id="@+id/publicacionesListaFragment"
+        android:name="com.mariana.androidhifam.PublicacionesListaFragment"
+        android:label="fragment_publicaciones_lista"
+        tools:layout="@layout/fragment_publicaciones_lista" >
+        <action
+            android:id="@+id/action_publicacionesListaFragment_to_publicacionesFragment"
+            app:destination="@id/publicacionesFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/albumesFragment" />
+        <argument
+            android:name="idAlbum"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_publicacionesListaFragment_to_publicacionFragment"
+            app:destination="@id/publicacionFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+        <action
+            android:id="@+id/action_publicacionesListaFragment_to_nuevaPublicacionFragment"
+            app:destination="@id/nuevaPublicacionFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+    <fragment
+        android:id="@+id/nuevaPublicacionFragment"
+        android:name="com.mariana.androidhifam.NuevaPublicacionFragment"
+        android:label="fragment_nueva_publicacion"
+        tools:layout="@layout/fragment_nueva_publicacion" >
+        <argument
+            android:name="idAlbum"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_nuevaPublicacionFragment_to_publicacionesFragment"
+            app:destination="@id/publicacionesFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/albumesFragment" />
+    </fragment>
 </navigation>

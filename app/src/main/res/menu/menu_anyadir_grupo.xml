@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nuevoGrupoFragment"
+        android:title="@string/crearGrupo"/>
+    <item
+        android:id="@+id/ingresoGrupoFragment"
+        android:title="@string/ingresarEnGrupo"/>
+
+</menu>

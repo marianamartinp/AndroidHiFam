@@ -2,8 +2,47 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.AndroidHiFam" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+         <item name="colorPrimary">@color/orange</item>
+
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogTheme</item>
+
+        <item name="android:popupMenuStyle">@style/popupMenu</item>
+
+        <item name="android:contextPopupMenuStyle">@style/contextMenu</item>
+
+        <item name="android:itemTextAppearance">@style/customMenuFont</item>
+        ...
     </style>
 
+    <!-- tema menú inferior -->
     <style name="Theme.AndroidHiFam" parent="Base.Theme.AndroidHiFam" />
+    
+    <style name="AppBottomSheetDialogTheme" parent="Theme.Material3.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+    </style>
+
+    <style name="AppModalStyle" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="android:background">@drawable/base_menu_inferior</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:clipChildren">false</item>
+        <item name="android:padding">10dp</item>
+    </style>
+
+    <!-- tema menú popup -->
+    <style name="popupMenu" parent="@style/Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/base_marco_publicacion</item>
+
+    </style>
+
+    <style name="contextMenu" parent="@style/Widget.Material3.PopupMenu.ContextMenu">
+        <item name="android:popupBackground">@drawable/base_marco_publicacion</item>
+
+    </style>
+
+    <style name="customMenuFont" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/nunito_bold</item>
+        <item name="android:textColor">@color/darkGrey</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
 </resources>

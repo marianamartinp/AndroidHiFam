@@ -36,6 +36,7 @@ public class CCAlbumFamiliar {
         try {
 //            String equipoServidor = "172.16.213.69";
             String equipoServidor = "192.168.1.213";
+//            String equipoServidor = "172.16.5.34";
             int puertoServidor = 30500;
             socketCliente = new Socket(equipoServidor, puertoServidor); 
             socketCliente.setSoTimeout(10000);
