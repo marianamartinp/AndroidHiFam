@@ -174,19 +174,35 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintVertical_weight="1"/>
 
+            <TextView
+                android:id="@+id/usuariosVacios"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:text="@string/usuariosVacios"
+                android:textSize="14sp"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:fontFamily="@font/nunito_bold"
+                android:textColor="@color/mediumGrey"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:visibility="visible"
+                app:layout_constraintTop_toTopOf="@id/miembrosGrupo"
+                app:layout_constraintBottom_toBottomOf="@id/miembrosGrupo"/>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/miembrosGrupo"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
-                android:layout_marginBottom="10dp"
-                app:layout_constraintVertical_weight="5"
-                app:layout_constraintBottom_toTopOf="@id/botonCrearFamilia"
+                android:layout_marginBottom="20dp"
+                app:layout_constraintVertical_weight="4.3"
+                app:layout_constraintBottom_toTopOf="@id/botonNuevaFamilia"
                 app:layout_constraintTop_toBottomOf="@id/usuarioFamilia"/>
 
             <ImageButton
-                android:id="@+id/botonCrearFamilia"
+                android:id="@+id/botonNuevaFamilia"
                 android:layout_height="0dp"
                 android:layout_width="0dp"
                 android:background="@null"
@@ -196,7 +212,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintVertical_weight="1"
+                app:layout_constraintVertical_weight="1.4"
                 app:layout_constraintTop_toBottomOf="@id/miembrosGrupo"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
 

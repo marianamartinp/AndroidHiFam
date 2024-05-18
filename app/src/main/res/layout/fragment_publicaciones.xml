@@ -22,14 +22,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:fontFamily="@font/nunito_bold"
-                android:shadowColor="@color/lightGrey"
+                android:shadowColor="@color/mediumGrey"
                 android:shadowRadius="5"
                 android:layout_gravity="center"
                 android:text="@string/tituloAlbum"
                 android:textSize="25sp"/>
             <ImageView
                 android:id="@+id/botonOpciones"
-                android:layout_width="wrap_content"
+                android:layout_width="30dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2.5dp"
                 android:layout_marginBottom="2.5dp"

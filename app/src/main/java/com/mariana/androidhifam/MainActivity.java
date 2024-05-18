@@ -1,5 +1,6 @@
 package com.mariana.androidhifam;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -9,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Toast;
 import android.window.OnBackInvokedDispatcher;
 
 import androidx.activity.OnBackPressedCallback;
@@ -23,15 +25,22 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     private Integer idUsuario;
+    private SwipeToRefreshLayout refreshLayout;
+
+    public interface SwipeToRefreshLayout {
+        void onSwipeToRefresh();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Botón de navegción atrás personalizado
         getOnBackPressedDispatcher().addCallback(binding.getLifecycleOwner(), callback);
+
+        // Arrastrar para refrescar
+        binding.refreshLayout.setOnRefreshListener(this);
     }
 
     @Override
@@ -131,5 +143,16 @@ public class MainActivity extends AppCompatActivity {
 
     public Integer getIdUsuario() {
         return idUsuario;
+    }
+
+    public void setRefreshLayout(SwipeToRefreshLayout refreshLayout){
+        this.refreshLayout = refreshLayout;
+    }
+    @Override
+    public void onRefresh() {
+        if (null != refreshLayout) {
+            refreshLayout.onSwipeToRefresh();
+        }
+        binding.refreshLayout.setRefreshing(false);
     }
 }

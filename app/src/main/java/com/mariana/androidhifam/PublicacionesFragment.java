@@ -33,7 +33,7 @@ import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 
-public class PublicacionesFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class PublicacionesFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
     private PublicacionesFragmentArgs publicacionesFragmentArgs;
     private @NonNull FragmentPublicacionesBinding binding;
     private ArrayList<Integer> imagenesPublicaciones;
@@ -61,6 +61,8 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        MainActivity activity = (MainActivity) getActivity();
+        activity.setRefreshLayout(this);
         binding.botonVistaIndividual.setOnClickListener(this);
         binding.botonNuevaPublicacion.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
@@ -153,5 +155,12 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         findNavController(view).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionFragment((int)id));
+    }
+
+    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
+    @Override
+    public void onSwipeToRefresh() {
+        cargarVistaPublicaciones(idAlbum);
+        Toast.makeText(getContext(), "Se han actualizado las publicaciones.", Toast.LENGTH_SHORT).show();
     }
 }

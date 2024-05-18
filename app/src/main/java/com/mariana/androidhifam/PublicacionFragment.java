@@ -34,7 +34,7 @@ import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Publicacion;
 
 
-public class PublicacionFragment extends Fragment implements View.OnClickListener {
+public class PublicacionFragment extends Fragment implements View.OnClickListener, MainActivity.SwipeToRefreshLayout {
     private PublicacionFragmentArgs publicacionFragmentArgs;
     private @NonNull FragmentPublicacionBinding binding;
     private Publicacion publicacion;
@@ -65,6 +65,8 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        MainActivity activity = (MainActivity) getActivity();
+        activity.setRefreshLayout(this);
         binding.botonNuevoComentario.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
         cargarVistaPublicacion(idPublicacion);
@@ -94,7 +96,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
 
     public void cargarListaComentarios() {
         if (!comentarios.isEmpty()) {
-            adapter = new ListAdapter<>(requireContext(), comentarios, ItemsListAdapter.ITEM_COMENTARIO);
+            adapter = new ListAdapter<>(requireContext(), comentarios, ItemsListAdapter.ITEM_COMENTARIO, null);
             binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             binding.recyclerView.setAdapter(adapter);
         }
@@ -143,10 +145,10 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         });
         popup.show();
     }
-
-    public void actualizarAdapter(){
-        adapter.notifyDataSetChanged();
-    }
+//
+//    public void actualizarAdapter(){
+//        adapter.notifyDataSetChanged();
+//    }
 
     @Override
     public void onClick(View v) {
@@ -156,5 +158,12 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         } else if (id == R.id.botonOpciones) {
             menuPopUp();
         }
+    }
+
+    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
+    @Override
+    public void onSwipeToRefresh() {
+        cargarVistaPublicacion(idPublicacion);
+        Toast.makeText(getContext(), "Se ha actualizado la publicación.", Toast.LENGTH_SHORT).show();
     }
 }

@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import com.mariana.androidhifam.databinding.FragmentGruposBinding;
+import com.mariana.androidhifam.databinding.FragmentGruposRecuperablesBinding;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,32 +35,30 @@ import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 
-public class GruposFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
+public class GruposRecuperablesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
 
-    private GruposFragmentArgs gruposFragmentArgs;
-    private @NonNull FragmentGruposBinding binding;
+    private GruposRecuperablesFragmentArgs gruposRecuperablesFragmentArgs;
+    private @NonNull FragmentGruposRecuperablesBinding binding;
     private ArrayList<Grupo> grupos;
     private ArrayList<Integer> imagenesGrupos;
     private CCAlbumFamiliar cliente;
     private TextView saludoUsuario;
     private Integer idUsuario;
-    private Boolean animar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            gruposFragmentArgs = GruposFragmentArgs.fromBundle(getArguments());
-            idUsuario = gruposFragmentArgs.getIdUsuario();
+            gruposRecuperablesFragmentArgs = GruposRecuperablesFragmentArgs.fromBundle(getArguments());
+            idUsuario = gruposRecuperablesFragmentArgs.getIdUsuario();
         }
-        animar = true;
         cliente = new CCAlbumFamiliar();
         grupos = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentGruposBinding.inflate(inflater, container, false);
+        binding = FragmentGruposRecuperablesBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
@@ -68,15 +66,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         MainActivity activity = (MainActivity) getActivity();
-        if (animar) {
-            activity.mostrarToolbar(true);
-            animar= false;
-        }
         activity.setRefreshLayout(this);
         saludoUsuario = activity.findViewById(R.id.saludoUsuario);
         registerForContextMenu(binding.gridView);
         binding.botonNuevaFamilia.setOnClickListener(this);
-        binding.botonPapelera.setOnClickListener(this);
         binding.gridView.setOnItemClickListener(this);
         cargarVistaGrupos(idUsuario);
     }
@@ -146,7 +139,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void cargarGrupos(Integer idUsuario) throws ExcepcionAlbumFamiliar {
         LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
         filtros.put("uig.COD_USUARIO", "="+idUsuario);
-        filtros.put("g.FECHA_ELIMINACION", "is null");
+        filtros.put("g.FECHA_ELIMINACION", "is not null");
         LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
         ordenacion.put("g.titulo", "asc");
         grupos = cliente.leerGrupos(filtros,ordenacion);
@@ -189,16 +182,13 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonNuevaFamilia) {
-            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToMenuAnyadirGrupoFragment());
-        }
-        else if (id == R.id.botonPapelera) {
-            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToGruposRecuperablesFragment(idUsuario));
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        findNavController(view).navigate(GruposFragmentDirections.actionGruposFragmentToAlbumesFragment((int)id));
+        ModalFragment modal = new ModalFragment(this, "textoModal veryveryvery laaargooo", "botonPositivo", null);
+        modal.show(getActivity().getSupportFragmentManager(), "testmodal");
     }
 
     private void refrescarFragment() {
@@ -206,7 +196,6 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         Integer id = navController.getCurrentDestination().getId();
         if (id != null) {
 //            navController.popBackStack(id, true);
-            navController.navigate(GruposFragmentDirections.actionGruposFragmentSelf(idUsuario));
         }
     }
 
@@ -215,5 +204,15 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void onSwipeToRefresh() {
         cargarVistaGrupos(idUsuario);
         Toast.makeText(getContext(), "Se han actualizado las familias.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPositiveClick() {
+        Toast.makeText(getContext(), "positivo.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onNegativeClick() {
+        Toast.makeText(getContext(), "negativo.", Toast.LENGTH_SHORT).show();
     }
 }

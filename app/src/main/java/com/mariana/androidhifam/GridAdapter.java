@@ -22,6 +22,8 @@ public class GridAdapter<T> extends BaseAdapter {
     private ArrayList<Integer> imagenes;
     private Boolean vistaIndividual;
     LayoutInflater inflater;
+
+
     public GridAdapter(Context context, ArrayList<T> arraylistObjetos, ArrayList<Integer> imagenesGrupos, Boolean vistaIndividual) {
         this.context = context;
         this.objetos = arraylistObjetos;

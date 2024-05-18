@@ -1,14 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".IngresoGrupoFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="ingreso grupo frag" />
+        android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/textViewIngresoEnGrupo"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:text="@string/solicitarIngresoEnGrupo"
+                android:justificationMode="inter_word"
+                android:fontFamily="@font/nunito_bold"
+                android:textSize="16sp"
+                android:textColor="@color/darkGrey"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"/>
+            <EditText
+                android:id="@+id/editableCodigo"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:fontFamily="@font/nunito_bold"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:maxLength="3"
+                android:hint="@string/campoCodigoDeGrupo"
+                android:background="@drawable/contorno_gris"
+                app:layout_constraintTop_toBottomOf="@id/textViewIngresoEnGrupo"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"/>
+            <Button
+                android:id="@+id/botonEnviarSolicitud"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="30dp"
+                android:text="@string/botonEnviarSolicitud"
+                android:textSize="16sp"
+                android:fontFamily="@font/nunito_bold"
+                android:textColor="@color/eggWhite"
+                android:textAlignment="center"
+                android:backgroundTint="@color/orange"
+                app:layout_constraintTop_toBottomOf="@id/editableCodigo"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</FrameLayout>
+</layout>

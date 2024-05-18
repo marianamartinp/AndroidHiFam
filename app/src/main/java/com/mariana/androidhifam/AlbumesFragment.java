@@ -37,7 +37,7 @@ import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Publicacion;
 
-public class AlbumesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, MenuProvider, AdapterView.OnItemClickListener {
+public class AlbumesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, MenuProvider, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
     private AlbumesFragmentArgs albumesFragmentArgs;
     private @NonNull FragmentAlbumesBinding binding;
     private ArrayList<Album> albumes;
@@ -66,6 +66,8 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        MainActivity activity = (MainActivity) getActivity();
+        activity.setRefreshLayout(this);
         //getActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
         binding.botonNuevoAlbum.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
@@ -108,7 +110,6 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         int position = info.position;
 
     }
-
 
     public void cargarTituloGrupo(Integer idGrupo) throws ExcepcionAlbumFamiliar {
         binding.tituloGrupo.setText(cliente.leerGrupo(idGrupo).getTitulo());
@@ -186,5 +187,12 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         findNavController(view).navigate(AlbumesFragmentDirections.actionAlbumesFragmentToPublicacionesFragment((int)id));
+    }
+
+    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
+    @Override
+    public void onSwipeToRefresh() {
+        cargarVistaAlbumes(idGrupo);
+        Toast.makeText(getContext(), "Se han actualizado los álbumes.", Toast.LENGTH_SHORT).show();
     }
 }

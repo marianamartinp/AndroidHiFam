@@ -56,10 +56,21 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"
-            app:popUpTo="@id/gruposFragment" />
+            app:popUpTo="@id/gruposFragment"/>
         <action
             android:id="@+id/action_gruposFragment_to_menuAnyadirGrupoFragment"
             app:destination="@id/menuAnyadirGrupoFragment" />
+        <action
+            android:id="@+id/action_gruposFragment_self"
+            app:destination="@id/gruposFragment"
+            app:enterAnim="@anim/slide_in_right"/>
+        <action
+            android:id="@+id/action_gruposFragment_to_gruposRecuperablesFragment"
+            app:destination="@id/gruposRecuperablesFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/albumesFragment"
@@ -126,7 +137,7 @@
         android:name="com.mariana.androidhifam.NuevoGrupoFragment"
         android:label="fragment_nuevo_grupo"
         tools:layout="@layout/fragment_nuevo_grupo" />
-    <fragment
+    <dialog
         android:id="@+id/ingresoGrupoFragment"
         android:name="com.mariana.androidhifam.IngresoGrupoFragment"
         android:label="fragment_ingreso_grupo"
@@ -142,17 +153,15 @@
         <action
             android:id="@+id/action_menuAnyadirGrupoFragment_to_ingresoGrupoFragment"
             app:destination="@id/ingresoGrupoFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popUpTo="@id/gruposFragment" />
         <action
             android:id="@+id/action_menuAnyadirGrupoFragment_to_nuevoGrupoFragment"
             app:destination="@id/nuevoGrupoFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"/>
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/gruposFragment" />
     </dialog>
     <fragment
         android:id="@+id/publicacionesListaFragment"
@@ -202,4 +211,21 @@
             app:popExitAnim="@anim/slide_out_right"
             app:popUpTo="@id/albumesFragment" />
     </fragment>
+    <argument
+        android:name="idUsuario"
+        app:argType="integer" />
+    <fragment
+        android:id="@+id/gruposRecuperablesFragment"
+        android:name="com.mariana.androidhifam.GruposRecuperablesFragment"
+        android:label="fragment_grupos_recuperables"
+        tools:layout="@layout/fragment_grupos_recuperables" >
+        <argument
+            android:name="idUsuario"
+            app:argType="integer" />
+    </fragment>
+    <dialog
+        android:id="@+id/modalFragment"
+        android:name="com.mariana.androidhifam.ModalFragment"
+        android:label="fragment_modal"
+        tools:layout="@layout/fragment_modal" />
 </navigation>

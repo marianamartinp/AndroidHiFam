@@ -61,6 +61,10 @@ dependencies {
     // Actualización, proporciona nuevos métodos
     implementation("androidx.appcompat:appcompat:1.6.0-alpha04")
 
+    // Refrescar la pantalla
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0" +
+            "")
+
     // Autentificación Google Drive
     implementation("com.google.android.gms:play-services-auth:21.1.0")
     implementation("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")

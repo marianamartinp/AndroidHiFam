@@ -4,7 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity"
     android:background="@drawable/fondoappdecoraciones">
-
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawerLayout"
         android:layout_width="match_parent"
@@ -45,4 +48,5 @@
             app:menu="@menu/menu_principal"
             app:headerLayout="@layout/nav_header"/>
     </androidx.drawerlayout.widget.DrawerLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </layout>

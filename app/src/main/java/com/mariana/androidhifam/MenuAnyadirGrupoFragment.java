@@ -21,7 +21,7 @@ import com.mariana.androidhifam.databinding.FragmentMenuAnyadirGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentPublicacionesBinding;
 
 public class MenuAnyadirGrupoFragment extends BottomSheetDialogFragment implements View.OnClickListener {
-    FragmentMenuAnyadirGrupoBinding binding;
+    private FragmentMenuAnyadirGrupoBinding binding;
     private NavController navController;
 
     @Override
