@@ -30,11 +30,29 @@
                 android:textSize="30sp"/>
 
         </LinearLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <TextView
+            android:id="@+id/descripcionFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="15">
+            android:layout_weight="1"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginEnd="30dp"
+            android:textAlignment="center"
+            android:fontFamily="@font/nunito_bold"
+            android:text="@string/descripcionGruposRecuperables"
+            android:visibility="visible"
+            android:textSize="17sp"
+            android:textColor="@color/mediumGrey"
+            app:layout_constraintTop_toBottomOf="@id/LinLayPrincipal"
+            app:layout_constraintBottom_toTopOf="@id/constraintLay"/>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLay"
+            android:layout_width="match_parent"
+            android:layout_marginTop="20dp"
+            android:layout_height="0dp"
+            android:layout_weight="16">
             <TextView
                 android:id="@+id/textoAlternativo"
                 android:layout_width="match_parent"
@@ -45,10 +63,12 @@
                 android:layout_marginEnd="30dp"
                 android:textAlignment="center"
                 android:fontFamily="@font/nunito_bold"
+                android:text="@string/textoAlternativo"
+                android:visibility="visible"
                 android:textSize="17sp"
                 android:textColor="@color/mediumGrey"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/botonNuevaFamilia"/>
+                app:layout_constraintBottom_toBottomOf="parent"/>
             <GridView
                 android:id="@+id/gridView"
                 android:layout_width="match_parent"
@@ -57,22 +77,9 @@
                 android:layout_marginEnd="30dp"
                 android:numColumns="2"
                 android:verticalSpacing="20dp"
-                app:layout_constraintBottom_toTopOf="@id/botonNuevaFamilia"
-                app:layout_constraintDimensionRatio="H,12:16"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <ImageButton
-                android:id="@+id/botonNuevaFamilia"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_weight="4"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                android:src="@drawable/botonnuevo"
-                android:layout_marginBottom="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/gridView" />
+                app:layout_constraintDimensionRatio="H,10:16"
+                app:layout_constraintTop_toTopOf="parent"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>

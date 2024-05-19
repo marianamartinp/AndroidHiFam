@@ -175,14 +175,14 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         return false;
     }
 
-    public void comprobarUsuarios() {
+    public void mostrarTextoAlternativo() {
         if (usuarios.isEmpty()) {
             new Handler().postDelayed(() -> {
-                binding.usuariosVacios.setVisibility(View.VISIBLE);
+                binding.textoAlternativo.setVisibility(View.VISIBLE);
             }, 200);
         }
         else {
-            binding.usuariosVacios.setVisibility(View.INVISIBLE);
+            binding.textoAlternativo.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -197,7 +197,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         int id = v.getId();
         if (id == R.id.botonAnyadirUsuario) {
             anyadirUsuario();
-            comprobarUsuarios();
+            mostrarTextoAlternativo();
         }
         else if (id == R.id.botonNuevaFamilia) {
             if (crearGrupo()) {
@@ -216,6 +216,6 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         usuarios.remove(position);
         adapter.notifyItemRemoved(position);
         adapter.notifyItemRangeChanged(position, usuarios.size() - position);
-        comprobarUsuarios();
+        mostrarTextoAlternativo();
     }
 }

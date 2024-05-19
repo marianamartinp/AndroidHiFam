@@ -9,28 +9,22 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 import com.mariana.androidhifam.databinding.FragmentPublicacionBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.Comentario;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Publicacion;
 
 
@@ -136,7 +130,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_album_admin, popup.getMenu());
+                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();

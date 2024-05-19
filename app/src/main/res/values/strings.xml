@@ -2,6 +2,7 @@
     <string name="app_name">HiFam</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="saludoUsuarioPersonalizado">¡Hey, %1$s!</string>
     <string name="saludoUsuario">¡Hey, Usuario!</string>
     <string name="tituloGrupos">Mis Familias</string>
     <string name="nuevaFamilia">Nueva Familia</string>
@@ -17,10 +18,6 @@
     <string name="miInfo">Mi informacion</string>
     <string name="crearGrupo">Crear nuevo grupo</string>
     <string name="ingresarEnGrupo">Ingresar en grupo existente</string>
-
-    <string name="verDetallesGrupo">Detalles del Grupo</string>
-    <string name="verIntegrantes">Integrantes del Grupo</string>
-    <string name="eliminarGrupo">Eliminar Grupo</string>
 
     <string name="nuevaPublicacionAlbum">Álbum: Titulo álbum</string>
     <string name="nuevaPublicacionTitulo">Escribe aquí un título</string>
@@ -41,5 +38,27 @@
     <string name="campoCodigoDeGrupo">Escribe aquí tu código</string>
 
     <string name="tituloGruposRecuperables">Familas Eliminadas</string>
+
+    <string name="textoAlternativo">No hay nada por aquí.</string>
+    <string name="descripcionGruposRecuperables">Aquí podrás ver tus grupos eliminados.</string>
+
+
+    <!-- Botones de modales -->
+    <string name="btnRecuperar">Recuperar</string>
+    <string name="btnCancelar">Cancelar</string>
+    <string name="btnConfirmar">Confirmar</string>
+    <string name="btnAceptar">Aceptar</string>
+
+
+    <!-- Items menús contextuales -->
+    <string name="verDetallesGrupo">Detalles del Grupo</string>
+    <string name="verIntegrantes">Integrantes del Grupo</string>
+    <string name="eliminarGrupo">Eliminar Grupo</string>
+    <string name="recuperarGrupo">Recuperar grupo</string>
+
+    <!-- Formulario nuevo álbum -->
+    <string name="grupoAlbum">Grupo: tituloGrupo</string>
+    <string name="nuevoAlbumTitulo">Escribe aquí un título*</string>
+    <string name="nuevoAlbumDescripcion">Escribe aquí una descripción</string>
 
 </resources>

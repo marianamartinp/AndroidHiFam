@@ -8,9 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Lifecycle;
 
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,13 +18,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mariana.androidhifam.databinding.FragmentAlbumesBinding;
-import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,8 +29,6 @@ import java.util.LinkedHashMap;
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Album;
-import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.Publicacion;
 
 public class AlbumesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, MenuProvider, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
     private AlbumesFragmentArgs albumesFragmentArgs;
@@ -88,7 +81,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     @Override
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.menu_album_admin, menu);
+        menuInflater.inflate(R.menu.menu_grupos_admin, menu);
     }
 
     @Override
@@ -103,7 +96,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.menu_album_admin, menu);
+        inflater.inflate(R.menu.menu_grupos_admin, menu);
 
         GridView gv = (GridView) v;
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
@@ -160,7 +153,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_album_admin, popup.getMenu());
+                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();

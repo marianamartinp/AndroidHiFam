@@ -3,7 +3,7 @@ package com.mariana.androidhifam;
 import static androidx.navigation.Navigation.findNavController;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -12,18 +12,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageButton;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 
@@ -31,7 +25,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 
@@ -41,6 +34,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     private @NonNull FragmentGruposBinding binding;
     private ArrayList<Grupo> grupos;
     private ArrayList<Integer> imagenesGrupos;
+    private GridAdapter<Grupo> adapter;
     private CCAlbumFamiliar cliente;
     private TextView saludoUsuario;
     private Integer idUsuario;
@@ -103,7 +97,9 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         else if (idMenuItem == R.id.eliminarGrupo) {
             Toast.makeText(requireContext(), "Grupo eliminado.", Toast.LENGTH_SHORT).show();
             eliminarGrupo(itemId);
-            refrescarFragment();
+            grupos.remove(position);
+            adapter.notifyDataSetChanged();
+            mostrarTextoAlternativo();
             return true;
         }
         else {
@@ -111,27 +107,11 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
-    public void eliminarGrupo(int idGrupo) {
-        Thread tarea = new Thread(() -> {
-            try {
-                cliente.eliminarGrupo(idGrupo);
-            } catch (ExcepcionAlbumFamiliar e) {
-                // Error
-            }
-        });
-        tarea.start();
-        try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            // Error
-        }
-    }
-
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.menu_album_admin, menu);
+        inflater.inflate(R.menu.menu_grupos_admin, menu);
 
         GridView gv = (GridView) v;
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
@@ -139,8 +119,33 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
 
     }
 
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonNuevaFamilia) {
+            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToMenuAnyadirGrupoFragment());
+        }
+        else if (id == R.id.botonPapelera) {
+            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToGruposRecuperablesFragment(idUsuario));
+        }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        findNavController(view).navigate(GruposFragmentDirections.actionGruposFragmentToAlbumesFragment((int)id));
+    }
+
+    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
+    @Override
+    public void onSwipeToRefresh() {
+        cargarVistaGrupos(idUsuario);
+        Toast.makeText(getContext(), "Se han actualizado las familias.", Toast.LENGTH_SHORT).show();
+    }
+
     public void cargarNombreUsuario(Integer idUsuario) throws ExcepcionAlbumFamiliar {
-        saludoUsuario.setText("¡Hey, " + cliente.leerUsuario(idUsuario).getNombre().split(" ", 2)[0] + "!");
+        String nombreUsuario = cliente.leerUsuario(idUsuario).getNombre().split(" ", 2)[0];
+        String saludo = getString(R.string.saludoUsuarioPersonalizado, nombreUsuario);
+        saludoUsuario.setText(saludo);
     }
 
     public void cargarGrupos(Integer idUsuario) throws ExcepcionAlbumFamiliar {
@@ -159,12 +164,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
             imagenesGrupos.add(R.drawable.imagen3);
             imagenesGrupos.add(R.drawable.imagen1);
             imagenesGrupos.add(R.drawable.imagen4);
-            GridAdapter<Grupo> adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
+            adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
             binding.gridView.setAdapter(adapter);
         }
-        else {
-            binding.textoAlternativo.setText("No hay nada por aquí.");
-        }
+        mostrarTextoAlternativo();
     }
 
     public void cargarVistaGrupos(Integer idUsuario) {
@@ -185,35 +188,32 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         cargarGrid();
     }
 
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonNuevaFamilia) {
-            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToMenuAnyadirGrupoFragment());
-        }
-        else if (id == R.id.botonPapelera) {
-            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToGruposRecuperablesFragment(idUsuario));
-        }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        findNavController(view).navigate(GruposFragmentDirections.actionGruposFragmentToAlbumesFragment((int)id));
-    }
-
-    private void refrescarFragment() {
-        NavController navController = Navigation.findNavController(requireView());
-        Integer id = navController.getCurrentDestination().getId();
-        if (id != null) {
-//            navController.popBackStack(id, true);
-            navController.navigate(GruposFragmentDirections.actionGruposFragmentSelf(idUsuario));
+    public void eliminarGrupo(int idGrupo) {
+        Thread tarea = new Thread(() -> {
+            try {
+                cliente.eliminarGrupo(idGrupo);
+            } catch (ExcepcionAlbumFamiliar e) {
+                // Error
+            }
+        });
+        tarea.start();
+        try {
+            tarea.join(5000);
+        } catch (InterruptedException e) {
+            // Error
         }
     }
 
-    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
-    @Override
-    public void onSwipeToRefresh() {
-        cargarVistaGrupos(idUsuario);
-        Toast.makeText(getContext(), "Se han actualizado las familias.", Toast.LENGTH_SHORT).show();
+
+    public void mostrarTextoAlternativo() {
+        if (grupos.isEmpty()) {
+            new Handler().postDelayed(() -> {
+                binding.textoAlternativo.setVisibility(View.VISIBLE);
+            }, 200);
+        }
+        else {
+            binding.textoAlternativo.setVisibility(View.INVISIBLE);
+        }
     }
+
 }

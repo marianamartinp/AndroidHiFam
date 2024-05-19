@@ -13,19 +13,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
 import android.widget.PopupMenu;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentPublicacionesBinding;
 import com.mariana.androidhifam.databinding.FragmentPublicacionesListaBinding;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Publicacion;
 
@@ -125,7 +121,7 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_album_admin, popup.getMenu());
+                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();

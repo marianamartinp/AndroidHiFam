@@ -16,6 +16,9 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.text.InputFilter;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -32,24 +35,20 @@ import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
 
 public class ModalFragment extends DialogFragment implements DialogInterface.OnDismissListener {
-    private NavController navController;
     private FragmentModalBinding binding;
-    private CCAlbumFamiliar cliente;
     private MainActivity activity;
     private CustomModalInterface customModalInterface;
     private String textoModal, botonPositivo, botonNegativo;
 
-    public ModalFragment(CustomModalInterface customModalInterface, String textoModal, String botonPositivo, String botonNegativo) {
+    private int position, id;
+
+    public ModalFragment(int position, int id, CustomModalInterface customModalInterface, String textoModal, String botonPositivo, String botonNegativo) {
+        this.position = position;
+        this.id = id;
         this.textoModal = textoModal;
         this.botonPositivo = botonPositivo;
         this.botonNegativo = botonNegativo;
         this.customModalInterface = customModalInterface;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        cliente = new CCAlbumFamiliar();
     }
 
     @NonNull
@@ -57,7 +56,6 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding = FragmentModalBinding.inflate(getLayoutInflater());
         activity = (MainActivity) getActivity();
-        navController = NavHostFragment.findNavController(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());
 
@@ -65,41 +63,14 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
         params.setMargins(10, 0, 10, 10);
 
         if (null != botonNegativo) {
-            Button negativeButton = (Button) getLayoutInflater().inflate(R.layout.boton_modal, null);
-            negativeButton.setText(botonNegativo);
-            negativeButton.setLayoutParams(params);
-            TextViewCompat.setTextAppearance(negativeButton, R.style.CustomButtonStyle);
-            negativeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (null != customModalInterface) {
-                        customModalInterface.onNegativeClick();
-                    }
-                    dismiss();
-                }
-            });
-            binding.contenedorBotones.addView(negativeButton);
+            anyadirBotonNegativo(params);
         }
 
         if (null != botonPositivo) {
-            Button positiveButton = (Button) getLayoutInflater().inflate(R.layout.boton_modal, null);
-            positiveButton.setText(botonPositivo);
-            positiveButton.setLayoutParams(params);
-            positiveButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (null != customModalInterface) {
-                        customModalInterface.onPositiveClick();
-                    }
-                    dismiss();
-                }
-            });
-            binding.contenedorBotones.addView(positiveButton);
+            anyadirBotonPositivo(params);
         }
 
         binding.textViewModal.setText(textoModal);
-        // Add buttons to the button container
-
         return builder.create();
     }
 
@@ -109,10 +80,55 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
         binding = null;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        Window window = getDialog().getWindow();
+        WindowManager.LayoutParams params = window.getAttributes();
+        int margin = getResources().getDimensionPixelSize(R.dimen.dialog_margin);
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        params.width = screenWidth - (2 * margin);
+//        params.height = android.view.WindowManager.LayoutParams.MATCH_PARENT;
+        window.setAttributes(params);
+    }
+
 
     public interface CustomModalInterface {
-        void onPositiveClick();
-        void onNegativeClick();
+        void onPositiveClick(int position, int id);
+        void onNegativeClick(int position, int id);
+    }
+
+    public void anyadirBotonNegativo(LinearLayout.LayoutParams params) {
+        Button negativeButton = (Button) getLayoutInflater().inflate(R.layout.boton_modal, null);
+        negativeButton.setText(botonNegativo);
+        negativeButton.setLayoutParams(params);
+        TextViewCompat.setTextAppearance(negativeButton, R.style.CustomButtonStyle);
+        negativeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (null != customModalInterface) {
+                    customModalInterface.onNegativeClick(position, id);
+                }
+                dismiss();
+            }
+        });
+        binding.contenedorBotones.addView(negativeButton);
+    }
+
+    public void anyadirBotonPositivo(LinearLayout.LayoutParams params) {
+        Button positiveButton = (Button) getLayoutInflater().inflate(R.layout.boton_modal, null);
+        positiveButton.setText(botonPositivo);
+        positiveButton.setLayoutParams(params);
+        positiveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (null != customModalInterface) {
+                    customModalInterface.onPositiveClick(position, id);
+                }
+                dismiss();
+            }
+        });
+        binding.contenedorBotones.addView(positiveButton);
     }
 
 }
