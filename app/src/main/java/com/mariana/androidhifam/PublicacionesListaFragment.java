@@ -31,7 +31,7 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     private ArrayList<Integer> imagenesPublicaciones;
     private ArrayList<Publicacion> publicaciones;
     private CCAlbumFamiliar cliente;
-    private Integer idAlbum;
+    private Integer idAlbum, idGrupo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,6 +39,7 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         if (getArguments() != null) {
             publicacionesListaFragmentArgs = PublicacionesListaFragmentArgs.fromBundle(getArguments());
             idAlbum = publicacionesListaFragmentArgs.getIdAlbum();
+            idGrupo = publicacionesListaFragmentArgs.getIdGrupo();
         }
         cliente = new CCAlbumFamiliar();
         publicaciones = new ArrayList<>();
@@ -135,9 +136,9 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonVistaGrid) {
-            findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToPublicacionesFragment(idAlbum));
+            findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToPublicacionesFragment(idAlbum, idGrupo));
         } else if (id == R.id.botonNuevaPublicacion) {
-            findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToNuevaPublicacionFragment(idAlbum));
+            findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToNuevaPublicacionFragment(idAlbum, idGrupo));
         }
         else if (id == R.id.botonOpciones) {
             menuPopUp();

@@ -31,7 +31,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     private ArrayList<Integer> imagenesPublicaciones;
     private ArrayList<Publicacion> publicaciones;
     private CCAlbumFamiliar cliente;
-    private Integer idAlbum;
+    private Integer idAlbum, idGrupo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,6 +39,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         if (getArguments() != null) {
             publicacionesFragmentArgs = PublicacionesFragmentArgs.fromBundle(getArguments());
             idAlbum = publicacionesFragmentArgs.getIdAlbum();
+            idGrupo = publicacionesFragmentArgs.getIdGrupo();
         }
         cliente = new CCAlbumFamiliar();
         publicaciones = new ArrayList<>();
@@ -135,9 +136,9 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonVistaIndividual) {
-            findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionesListaFragment(idAlbum));
+            findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionesListaFragment(idAlbum, idGrupo));
         } else if (id == R.id.botonNuevaPublicacion) {
-            findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToNuevaPublicacionFragment(idAlbum));
+            findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToNuevaPublicacionFragment(idAlbum, idGrupo));
         }
         else if (id == R.id.botonOpciones) {
             menuPopUp();

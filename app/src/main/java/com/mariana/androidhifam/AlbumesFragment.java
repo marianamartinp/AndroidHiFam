@@ -179,7 +179,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        findNavController(view).navigate(AlbumesFragmentDirections.actionAlbumesFragmentToPublicacionesFragment((int)id));
+        findNavController(view).navigate(AlbumesFragmentDirections.actionAlbumesFragmentToPublicacionesFragment((int)id, idGrupo));
     }
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.

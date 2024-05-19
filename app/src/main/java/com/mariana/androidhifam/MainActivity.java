@@ -1,24 +1,17 @@
 package com.mariana.androidhifam;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Toast;
-import android.window.OnBackInvokedDispatcher;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.OnBackPressedDispatcher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -27,15 +20,29 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
 import com.mariana.androidhifam.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import driveapi.DriveServiceHelper;
+
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, DriveServiceHelper.DriveServiceInitialization {
 
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     private Integer idUsuario;
     private SwipeToRefreshLayout refreshLayout;
+    private DriveServiceHelper driveServiceHelper;
+
 
     public interface SwipeToRefreshLayout {
         void onSwipeToRefresh();
@@ -83,12 +90,42 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
         // Arrastrar para refrescar
         binding.refreshLayout.setOnRefreshListener(this);
+
+        // Inicializar la api de Google Drive
+        setDriveService();
     }
 
     @Override
     public boolean onSupportNavigateUp() {
         return  navController.navigateUp() || super.onSupportNavigateUp();
+    }
 
+    @Override
+    public void onRefresh() {
+        if (null != refreshLayout) {
+            refreshLayout.onSwipeToRefresh();
+        }
+        binding.refreshLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void initializeDriveService() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            InputStream is = getResources().openRawResource(R.raw.credentials);
+            GoogleCredential credential;
+            try {
+                credential = GoogleCredential.fromStream(is)
+                        .createScoped(Collections.singleton(DriveScopes.DRIVE));
+
+                driveServiceHelper = new DriveServiceHelper(new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential)
+                        .setApplicationName("HiFam!")
+                        .build(), this);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        executor.shutdown();
     }
 
     public void mostrarToolbar(Boolean mostrar) {
@@ -145,14 +182,23 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return idUsuario;
     }
 
+    public DriveServiceHelper getDriveServiceHelper() {
+        return driveServiceHelper;
+    }
+
     public void setRefreshLayout(SwipeToRefreshLayout refreshLayout){
         this.refreshLayout = refreshLayout;
     }
-    @Override
-    public void onRefresh() {
-        if (null != refreshLayout) {
-            refreshLayout.onSwipeToRefresh();
-        }
-        binding.refreshLayout.setRefreshing(false);
+
+    private void setDriveService() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                initializeDriveService();
+            } catch (Exception e) {
+                e.printStackTrace(); // Handle exceptions appropriately
+            }
+        });
+        executor.shutdown();
     }
 }

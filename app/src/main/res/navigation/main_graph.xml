@@ -61,10 +61,6 @@
             android:id="@+id/action_gruposFragment_to_menuAnyadirGrupoFragment"
             app:destination="@id/menuAnyadirGrupoFragment" />
         <action
-            android:id="@+id/action_gruposFragment_self"
-            app:destination="@id/gruposFragment"
-            app:enterAnim="@anim/slide_in_right"/>
-        <action
             android:id="@+id/action_gruposFragment_to_gruposRecuperablesFragment"
             app:destination="@id/gruposRecuperablesFragment"
             app:enterAnim="@anim/slide_in_right"
@@ -118,6 +114,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
     </fragment>
     <fragment
         android:id="@+id/publicacionFragment"
@@ -193,6 +192,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
     </fragment>
     <fragment
         android:id="@+id/nuevaPublicacionFragment"
@@ -202,14 +204,9 @@
         <argument
             android:name="idAlbum"
             app:argType="integer" />
-        <action
-            android:id="@+id/action_nuevaPublicacionFragment_to_publicacionesFragment"
-            app:destination="@id/publicacionesFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"
-            app:popUpTo="@id/albumesFragment" />
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
     </fragment>
     <argument
         android:name="idUsuario"
