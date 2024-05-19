@@ -62,28 +62,17 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.0-alpha04")
 
     // Refrescar la pantalla
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0" +
-            "")
-
-    // Autentificación Google Drive
-    implementation("com.google.android.gms:play-services-auth:21.1.0")
-    implementation("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")
-    {
-        exclude(group = "org.apache.httpcomponents")
-    }
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Integración Google Drive
-    // implementation("com.google.apis:google-api-services-drive:v3-rev")
-    implementation("com.google.api-client:google-api-client-android:2.0.0") {
-        exclude(group = "org.apache.httpcomponents")
-    }
+    implementation("com.google.android.gms:play-services-auth:21.1.1")
     implementation("com.google.http-client:google-http-client-gson:1.44.1")
-    // implementation("com.google.auth:google-auth-library-oauth2-http:1.11.0")
-
-
-    //implementation("com.google.api-client:google-api-client:2.0.0")
-    //implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
-    //implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+    implementation("com.google.api-client:google-api-client-android:1.26.0") {
+        exclude(group= "org.apache.httpcomponents")
+    }
+    implementation("com.google.apis:google-api-services-drive:v3-rev136-1.25.0") {
+        exclude(group= "org.apache.httpcomponents")
+    }
 
 }
 
