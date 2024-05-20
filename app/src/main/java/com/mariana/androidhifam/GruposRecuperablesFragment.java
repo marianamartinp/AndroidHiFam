@@ -10,6 +10,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -17,9 +18,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.FragmentGruposRecuperablesBinding;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,7 +36,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     private GruposRecuperablesFragmentArgs gruposRecuperablesFragmentArgs;
     private @NonNull FragmentGruposRecuperablesBinding binding;
     private ArrayList<Grupo> grupos;
-    private ArrayList<Integer> imagenesGrupos;
+    private ArrayList<File> imagenesGrupos;
     private GridAdapter<Grupo> adapter;
     private CCAlbumFamiliar cliente;
     private Integer idUsuario;
@@ -61,6 +64,23 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         MainActivity activity = (MainActivity) getActivity();
         activity.setRefreshLayout(this);
         registerForContextMenu(binding.gridView);
+        SwipeRefreshLayout refreshLayout = activity.findViewById(R.id.refreshLayout);
+        binding.gridView.setOnScrollListener(new GridView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // Disable refreshing when scrolling
+                if (scrollState != AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    refreshLayout.setEnabled(false);
+                } else {
+                    refreshLayout.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // Empty method body, not needed for this purpose
+            }
+        });
         binding.gridView.setOnItemClickListener(this);
         cargarVistaGrupos(idUsuario);
     }
@@ -138,16 +158,10 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     }
 
     public void cargarGrid() {
-        if (!grupos.isEmpty()) {
-            imagenesGrupos = new ArrayList<>();
-            imagenesGrupos.add(R.drawable.imagen2);
-            imagenesGrupos.add(R.drawable.imagen3);
-            imagenesGrupos.add(R.drawable.imagen1);
-            imagenesGrupos.add(R.drawable.imagen4);
-            adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
-            binding.gridView.setAdapter(adapter);
-        }
-        mostrarTextoAlternativo();
+        imagenesGrupos = new ArrayList<>();
+
+        adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
+        binding.gridView.setAdapter(adapter);
     }
 
     public void cargarVistaGrupos(Integer idUsuario) {
@@ -165,6 +179,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
             // Error
         }
         cargarGrid();
+        mostrarTextoAlternativo();
     }
 
     public void modalRecuperarGrupo(int position, int id) {

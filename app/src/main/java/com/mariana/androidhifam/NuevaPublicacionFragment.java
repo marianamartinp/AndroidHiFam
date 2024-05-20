@@ -14,16 +14,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.TaskCompletionSource;
 import com.mariana.androidhifam.databinding.FragmentNuevaPublicacionBinding;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
@@ -54,14 +53,14 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
             idAlbum = nuevaPublicacionFragmentArgs.getIdAlbum();
             idGrupo = nuevaPublicacionFragmentArgs.getIdGrupo();
         }
-        cliente = new CCAlbumFamiliar();
+        activity = (MainActivity) getActivity();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         navController = NavHostFragment.findNavController(this);
         binding = FragmentNuevaPublicacionBinding.inflate(inflater, container, false);
-        activity = (MainActivity) getActivity();
+        cliente = activity.getCliente();
         return binding.getRoot();
     }
 
@@ -96,46 +95,44 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         }
     }
 
-    public Task<Boolean> crearNuevaPublicacion(Integer idAlbum, Integer idUsuario) {
-        TaskCompletionSource<Boolean> taskCompletionSource = new TaskCompletionSource<>();
+    public Boolean crearNuevaPublicacion(Integer idAlbum, Integer idUsuario) {
+        Boolean creadoCorrectamente = true;
+        try {
+            Thread tarea = new Thread(() -> {
+                DatosArchivo datosArchivo = activity.getDriveServiceHelper().uploadImageFile(uriImagen, idGrupo, idAlbum);
+                try {
+                    construirPublicacion(datosArchivo, idUsuario);
+                } catch (ExcepcionAlbumFamiliar e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            tarea.start();
+            tarea.join();
+        } catch (Exception e) {
+            Log.e("ERROR DRIVE PUBLICACION", "Error en operaciones de subida o descarga de drive");
+            creadoCorrectamente = false;
+        }
+        return creadoCorrectamente;
+    }
+
+    public Boolean construirPublicacion(DatosArchivo datosArchivo, int idUsuario) throws ExcepcionAlbumFamiliar {
+        boolean creadoCorrectamente = false;
         String titulo = binding.tituloPublicacion.getText().toString();
         String texto = binding.textoPublicacion.getText().toString();
-        activity.getDriveServiceHelper().uploadImageFile(uriImagen, idGrupo, idAlbum)
-                .addOnSuccessListener(datosArchivo -> {
-                    Thread tarea = new Thread(() -> {
-                        boolean creadoCorrectamente = false;
-                        if (null != datosArchivo.getArchivoId()) {
-                            try {
-                                Publicacion publicacion = new Publicacion();
-                                publicacion.setPublicacionEnAlbum(idAlbum);
-                                publicacion.setTitulo(titulo);
-                                publicacion.setTexto(texto);
-                                Usuario usuario = new Usuario();
-                                usuario.setCodUsuario(idUsuario);
-                                publicacion.setUsuarioCreaPublicacion(usuario);
-                                Archivo archivo = new Archivo(null, datosArchivo.getNombre(), datosArchivo.getArchivoId());
-                                publicacion.setArchivo(archivo);
-                                cliente.insertarPublicacion(publicacion);
-                                creadoCorrectamente = true;
-                            } catch (ExcepcionAlbumFamiliar e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                        taskCompletionSource.setResult(creadoCorrectamente);
-                    });
-                    tarea.start();
-                    try {
-                        tarea.join(5000);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    // Handle failure
-                    e.printStackTrace();
-                    taskCompletionSource.setException(e);
-                });;
-        return taskCompletionSource.getTask();
+        if (null != datosArchivo.getArchivoId()) {
+            Publicacion publicacion = new Publicacion();
+            publicacion.setPublicacionEnAlbum(idAlbum);
+            publicacion.setTitulo(titulo);
+            publicacion.setTexto(texto);
+            Usuario usuario = new Usuario();
+            usuario.setCodUsuario(idUsuario);
+            publicacion.setUsuarioCreaPublicacion(usuario);
+            Archivo archivo = new Archivo(null, datosArchivo.getNombre(), datosArchivo.getArchivoId());
+            publicacion.setArchivo(archivo);
+            cliente.insertarPublicacion(publicacion);
+            creadoCorrectamente = true;
+        }
+        return creadoCorrectamente;
     }
 
     public void seleccionarImagen() {
@@ -165,16 +162,13 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonCrearPublicacion) {
-            crearNuevaPublicacion(idAlbum, activity.getIdUsuario())
-                    .addOnSuccessListener(creadoCorrectamente -> {
-                        if (creadoCorrectamente) {
-                            Toast.makeText(requireContext(), "La publicación se ha creado correctamente.", Toast.LENGTH_SHORT).show();
-                            navController.popBackStack();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        // Handle failure
-                    });
+            if (crearNuevaPublicacion(idAlbum, activity.getIdUsuario())) {
+                Toast.makeText(requireContext(), "La publicación se ha creado correctamente.", Toast.LENGTH_SHORT).show();
+                navController.popBackStack();
+            }
+            else {
+                Toast.makeText(requireContext(), "Se ha producido un error.", Toast.LENGTH_SHORT).show();
+            }
         }
         else if (id == R.id.cardView) {
             seleccionarImagen();

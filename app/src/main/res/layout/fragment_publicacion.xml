@@ -115,7 +115,7 @@
                 android:layout_gravity="center"
                 android:adjustViewBounds="true"
                 android:scaleType="centerCrop"
-                android:src="@drawable/imagen1" />
+                android:src="@drawable/noimagen" />
 
         </com.google.android.material.card.MaterialCardView>
 

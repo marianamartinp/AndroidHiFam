@@ -63,6 +63,8 @@
                 android:textAlignment="center"
                 android:fontFamily="@font/nunito_bold"
                 android:textSize="17sp"
+                android:text="@string/textoAlternativo"
+                android:visibility="visible"
                 android:textColor="@color/mediumGrey"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/botonNuevoAlbum"/>

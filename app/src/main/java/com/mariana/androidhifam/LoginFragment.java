@@ -17,6 +17,8 @@ import android.widget.Button;
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 import com.mariana.androidhifam.databinding.FragmentLoginBinding;
 
+import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+
 public class LoginFragment extends Fragment implements View.OnClickListener {
 
     private FragmentLoginBinding binding;
@@ -44,6 +46,29 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         binding.btnLogin.setOnClickListener(this);
     }
 
+//    public Boolean iniciarSesion(int idUsuario) {
+//
+//    }
+
+//    public void cargarVistaGrupos(Integer idUsuario) {
+//        Thread tarea = new Thread(() -> {
+//            try {
+//                cargarNombreUsuario(idUsuario);
+//                cargarGrupos(idUsuario);
+//            } catch (ExcepcionAlbumFamiliar e) {
+//                // Error
+//            }
+//        });
+//        tarea.start();
+//        try {
+//            tarea.join(5000);
+//        } catch (InterruptedException e) {
+//            // Error
+//        }
+//        cargarGrid();
+//        mostrarTextoAlternativo();
+//    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -56,6 +81,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         if (id == R.id.btnLogin) {
             int idUsuario = 1;
             activity.setIdUsuario(idUsuario);
+
             findNavController(v).navigate(LoginFragmentDirections.actionLoginFragmentToGruposFragment(idUsuario));
         }
     }

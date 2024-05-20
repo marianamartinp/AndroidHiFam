@@ -8,7 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.os.Handler;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,6 +18,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.PopupMenu;
@@ -23,6 +26,7 @@ import android.widget.Toast;
 
 import com.mariana.androidhifam.databinding.FragmentAlbumesBinding;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
@@ -34,9 +38,12 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     private AlbumesFragmentArgs albumesFragmentArgs;
     private @NonNull FragmentAlbumesBinding binding;
     private ArrayList<Album> albumes;
-    private ArrayList<Integer> imagenesAlbumes;
+    private ArrayList<File> imagenesAlbumes;
+    GridAdapter<Album> adapter;
     private CCAlbumFamiliar cliente;
     private Integer idGrupo;
+    private String portadaAlbum;
+    private MainActivity activity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,25 +53,42 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
             albumesFragmentArgs = AlbumesFragmentArgs.fromBundle(getArguments());
             idGrupo = albumesFragmentArgs.getIdGrupo();
         }
-        cliente = new CCAlbumFamiliar();
         albumes = new ArrayList<>();
+        activity = (MainActivity) getActivity();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentAlbumesBinding.inflate(inflater, container, false);
+        cliente = activity.getCliente();
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        MainActivity activity = (MainActivity) getActivity();
         activity.setRefreshLayout(this);
         //getActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
         binding.botonNuevoAlbum.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
         binding.botonUsuarios.setOnClickListener(this);
+        SwipeRefreshLayout refreshLayout = activity.findViewById(R.id.refreshLayout);
+        binding.gridView.setOnScrollListener(new GridView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // Disable refreshing when scrolling
+                if (scrollState != AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    refreshLayout.setEnabled(false);
+                } else {
+                    refreshLayout.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // Empty method body, not needed for this purpose
+            }
+        });
         cargarVistaAlbumes(idGrupo);
 
         registerForContextMenu(binding.gridView);
@@ -97,45 +121,33 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getActivity().getMenuInflater();
         inflater.inflate(R.menu.menu_grupos_admin, menu);
-
-        GridView gv = (GridView) v;
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-        int position = info.position;
-
     }
 
     public void cargarTituloGrupo(Integer idGrupo) throws ExcepcionAlbumFamiliar {
         binding.tituloGrupo.setText(cliente.leerGrupo(idGrupo).getTitulo());
     }
 
+
     public void cargarAlbumes(Integer idGrupo) throws ExcepcionAlbumFamiliar {
         LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
         filtros.put("a.COD_GRUPO_CREA_ALBUM", "="+idGrupo);
+        filtros.put("a.FECHA_ELIMINACION", "is null");
         LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
         ordenacion.put("a.titulo", "asc");
         albumes = cliente.leerAlbumes(filtros,ordenacion);
     }
 
     public void cargarGrid() {
-        if (!albumes.isEmpty()) {
-            imagenesAlbumes = new ArrayList<>();
-            imagenesAlbumes.add(R.drawable.imagen2);
-            imagenesAlbumes.add(R.drawable.imagen3);
-            imagenesAlbumes.add(R.drawable.imagen1);
-            imagenesAlbumes.add(R.drawable.imagen4);
-
-            GridAdapter<Album> adapter = new GridAdapter<>(requireContext(), albumes, imagenesAlbumes, false);
-            binding.gridView.setAdapter(adapter);
-        }
-        else {
-            binding.textoAlternativo.setText("No hay nada por aquí.");
-        }
+        imagenesAlbumes = activity.getImagenes();
+        adapter = new GridAdapter<>(requireContext(), albumes, imagenesAlbumes, false);
+        binding.gridView.setAdapter(adapter);
     }
 
     public void cargarVistaAlbumes(Integer idGrupo) {
         Thread tarea = new Thread(() -> {
             try {
                 cargarTituloGrupo(idGrupo);
+                activity.cargarImagenesDrive();
                 cargarAlbumes(idGrupo);
             } catch (ExcepcionAlbumFamiliar e) {
                 //throw new RuntimeException(e);
@@ -148,6 +160,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
             throw new RuntimeException(e);
         }
         cargarGrid();
+        mostrarTextoAlternativo();
     }
 
     public void menuPopUp() {
@@ -187,5 +200,16 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     public void onSwipeToRefresh() {
         cargarVistaAlbumes(idGrupo);
         Toast.makeText(getContext(), "Se han actualizado los álbumes.", Toast.LENGTH_SHORT).show();
+    }
+
+    public void mostrarTextoAlternativo() {
+        if (albumes.isEmpty()) {
+            new Handler().postDelayed(() -> {
+                binding.textoAlternativo.setVisibility(View.VISIBLE);
+            }, 200);
+        }
+        else {
+            binding.textoAlternativo.setVisibility(View.INVISIBLE);
+        }
     }
 }

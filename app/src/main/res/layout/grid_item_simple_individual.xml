@@ -40,7 +40,7 @@
             android:layout_gravity="center"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            android:src="@drawable/imagen3" />
+            android:src="@drawable/noimagen" />
 
     </com.google.android.material.card.MaterialCardView>
 

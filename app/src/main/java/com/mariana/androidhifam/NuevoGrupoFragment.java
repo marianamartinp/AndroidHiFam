@@ -43,20 +43,21 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        cliente = new CCAlbumFamiliar();
+        activity = (MainActivity) getActivity();
         usuarios = new ArrayList<>();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentNuevoGrupoBinding.inflate(inflater, container, false);
+        cliente = activity.getCliente();
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        activity = (MainActivity) getActivity();
+
         binding.botonNuevaFamilia.setOnClickListener(this);
         binding.botonAnyadirUsuario.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);

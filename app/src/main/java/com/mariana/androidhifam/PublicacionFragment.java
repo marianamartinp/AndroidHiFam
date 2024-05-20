@@ -2,6 +2,8 @@ package com.mariana.androidhifam;
 
 import static androidx.navigation.Navigation.findNavController;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -9,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +21,7 @@ import android.widget.Toast;
 
 import com.mariana.androidhifam.databinding.FragmentPublicacionBinding;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,6 +41,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     private Integer idPublicacion, imagenPublicacion;
     private CCAlbumFamiliar cliente;
     private ListAdapter<Comentario> adapter;
+    private MainActivity activity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,7 +50,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
             publicacionFragmentArgs = PublicacionFragmentArgs.fromBundle(getArguments());
             idPublicacion = publicacionFragmentArgs.getIdPublicacion();
         }
-        cliente = new CCAlbumFamiliar();
+        activity = (MainActivity) getActivity();
         comentarios = new ArrayList<>();
         publicacion = new Publicacion();
     }
@@ -53,13 +58,13 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentPublicacionBinding.inflate(inflater, container, false);
+        cliente = activity.getCliente();
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        MainActivity activity = (MainActivity) getActivity();
         activity.setRefreshLayout(this);
         binding.botonNuevoComentario.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
@@ -105,6 +110,24 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         binding.infoAdicional.setText("@" + usuario + ", " + fecha);
         binding.tituloDescripcion.setText(publicacion.getTitulo() + ": " + publicacion.getTexto());
         binding.tituloAlbum.setText(tituloAlbum);
+        establecerImagen();
+    }
+
+    public void establecerImagen() {
+        ArrayList<File> imagenes = activity.getImagenes();
+        if (!imagenes.isEmpty()) {
+            for (File imagenLista : imagenes) {
+                if (imagenLista.getName().equals(publicacion.getArchivo().getTitulo())) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
+                    if (bitmap != null) {
+                        binding.imagen.setImageBitmap(bitmap);
+                        break;
+                    } else {
+                        Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                    }
+                }
+            }
+        }
     }
 
     public void cargarVistaPublicacion(Integer idPublicacion) {

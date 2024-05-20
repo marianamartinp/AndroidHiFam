@@ -43,14 +43,14 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        cliente = new CCAlbumFamiliar();
+        activity = (MainActivity) getActivity();
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding = FragmentIngresoGrupoBinding.inflate(getLayoutInflater());
-        activity = (MainActivity) getActivity();
+        cliente = activity.getCliente();
         navController = NavHostFragment.findNavController(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());

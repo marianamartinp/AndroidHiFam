@@ -3,6 +3,8 @@ package com.mariana.androidhifam;
 import static androidx.navigation.Navigation.findNavController;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,22 +14,24 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import pojosalbumfamiliar.*;
 
 public class GridAdapter<T> extends BaseAdapter {
     private Context context;
     private ArrayList<T> objetos;
-    private ArrayList<Integer> imagenes;
+    private ArrayList<File> imagenes;
     private Boolean vistaIndividual;
     LayoutInflater inflater;
 
 
-    public GridAdapter(Context context, ArrayList<T> arraylistObjetos, ArrayList<Integer> imagenesGrupos, Boolean vistaIndividual) {
+    public GridAdapter(Context context, ArrayList<T> objetos, ArrayList<File> imagenes, Boolean vistaIndividual) {
         this.context = context;
-        this.objetos = arraylistObjetos;
-        this.imagenes = imagenesGrupos;
+        this.objetos = objetos;
+        this.imagenes = imagenes;
         this.vistaIndividual = vistaIndividual;
     }
 
@@ -78,41 +82,77 @@ public class GridAdapter<T> extends BaseAdapter {
         TextView titulo = convertView.findViewById(R.id.titulo);
         ImageView imagen = convertView.findViewById(R.id.imagen);
 
-        if (position <= imagenes.size()) {
-            imagen.setImageResource(imagenes.get(position));
-        }
-        else {
-            imagen.setImageResource(R.drawable.hifamisot);
-        }
-
         if (objetos.get(0) instanceof Album) {
-            inflarAlbumes(position, convertView, imagen, titulo);
+            inflarAlbumes(position, imagen, titulo);
         }
 
         if (objetos.get(0) instanceof Publicacion) {
-            inflarPublicaciones(position, convertView, imagen);
+            inflarPublicaciones(position, imagen);
         }
 
         if (objetos.get(0) instanceof Grupo) {
-            inflarGrupos(position, convertView, imagen, titulo);
+            inflarGrupos(position, imagen, titulo);
         }
 
         return convertView;
     }
 
-    public void inflarGrupos(int position, View convertView, ImageView imagen, TextView titulo) {
+    public void inflarGrupos(int position, ImageView imagen, TextView titulo) {
         ArrayList<Grupo> grupos = (ArrayList<Grupo>) objetos;
         titulo.setText(grupos.get(position).getTitulo());
+        if (!imagenes.isEmpty()) {
+            for (File imagenLista : imagenes) {
+                String nombreImagen = imagenLista.getName().substring(0,3);
+                String stringEsperado = String.format("%03d", grupos.get(position).getCodGrupo());
+                if (nombreImagen.equals(stringEsperado)) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
+                    if (bitmap != null) {
+                        imagen.setImageBitmap(bitmap);
+                        break;
+                    } else {
+                        Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                    }
+                }
+            }
+        }
     }
 
-    public void inflarAlbumes(int position, View convertView, ImageView imagen, TextView titulo) {
+    public void inflarAlbumes(int position, ImageView imagen, TextView titulo) {
         ArrayList<Album> albumes = (ArrayList<Album>) objetos;
         titulo.setText(albumes.get(position).getTitulo());
+        if (!imagenes.isEmpty()) {
+            for (File imagenLista : imagenes) {
+                String nombreImagen = imagenLista.getName().substring(0,8);
+                String stringEsperado = String.format("%03d", albumes.get(position).getGrupoCreaAlbum().getCodGrupo()) +
+                        String.format("%05d", albumes.get(position).getCodAlbum());
+                if (nombreImagen.equals(stringEsperado)) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
+                    if (bitmap != null) {
+                        imagen.setImageBitmap(bitmap);
+                        break;
+                    } else {
+                        Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                    }
+                }
+            }
+        }
     }
 
-    public void inflarPublicaciones(int position, View convertView, ImageView imagen){
+    public void inflarPublicaciones(int position, ImageView imagen){
         ArrayList<Publicacion> publicaciones = (ArrayList<Publicacion>) objetos;
-        //imagen.setImageResource(R.drawable.hifamisot);
+        if (!imagenes.isEmpty()) {
+            for (File imagenLista : imagenes) {
+                if (imagenLista.getName().equals(publicaciones.get(position).getArchivo().getTitulo())) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
+                    if (bitmap != null) {
+                        imagen.setImageBitmap(bitmap);
+                        break;
+                    } else {
+                        Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                    }
+                }
+            }
+        }
     }
 
 }

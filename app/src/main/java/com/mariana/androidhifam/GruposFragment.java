@@ -4,12 +4,14 @@ import static androidx.navigation.Navigation.findNavController;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
@@ -18,11 +20,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
@@ -33,12 +39,16 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     private GruposFragmentArgs gruposFragmentArgs;
     private @NonNull FragmentGruposBinding binding;
     private ArrayList<Grupo> grupos;
-    private ArrayList<Integer> imagenesGrupos;
+    private ArrayList<File> imagenesGrupos;
     private GridAdapter<Grupo> adapter;
     private CCAlbumFamiliar cliente;
     private TextView saludoUsuario;
     private Integer idUsuario;
     private Boolean animar;
+    private  MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private String saludo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,20 +58,22 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
             idUsuario = gruposFragmentArgs.getIdUsuario();
         }
         animar = true;
-        cliente = new CCAlbumFamiliar();
         grupos = new ArrayList<>();
+        activity = (MainActivity) getActivity();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentGruposBinding.inflate(inflater, container, false);
+        cliente = activity.getCliente();
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        MainActivity activity = (MainActivity) getActivity();
         if (animar) {
             activity.mostrarToolbar(true);
             animar= false;
@@ -71,6 +83,23 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         registerForContextMenu(binding.gridView);
         binding.botonNuevaFamilia.setOnClickListener(this);
         binding.botonPapelera.setOnClickListener(this);
+        SwipeRefreshLayout refreshLayout = activity.findViewById(R.id.refreshLayout);
+        binding.gridView.setOnScrollListener(new GridView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // Disable refreshing when scrolling
+                if (scrollState != AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    refreshLayout.setEnabled(false);
+                } else {
+                    refreshLayout.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // Empty method body, not needed for this purpose
+            }
+        });
         binding.gridView.setOnItemClickListener(this);
         cargarVistaGrupos(idUsuario);
     }
@@ -112,11 +141,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         super.onCreateContextMenu(menu, v, menuInfo);
         MenuInflater inflater = getActivity().getMenuInflater();
         inflater.inflate(R.menu.menu_grupos_admin, menu);
-
-        GridView gv = (GridView) v;
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-        int position = info.position;
-
     }
 
     @Override
@@ -144,8 +169,8 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
 
     public void cargarNombreUsuario(Integer idUsuario) throws ExcepcionAlbumFamiliar {
         String nombreUsuario = cliente.leerUsuario(idUsuario).getNombre().split(" ", 2)[0];
-        String saludo = getString(R.string.saludoUsuarioPersonalizado, nombreUsuario);
-        saludoUsuario.setText(saludo);
+        saludo = getString(R.string.saludoUsuarioPersonalizado, nombreUsuario);
+//        saludoUsuario.setText(saludo);
     }
 
     public void cargarGrupos(Integer idUsuario) throws ExcepcionAlbumFamiliar {
@@ -158,34 +183,69 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     }
 
     public void cargarGrid() {
-        if (!grupos.isEmpty()) {
-            imagenesGrupos = new ArrayList<>();
-            imagenesGrupos.add(R.drawable.imagen2);
-            imagenesGrupos.add(R.drawable.imagen3);
-            imagenesGrupos.add(R.drawable.imagen1);
-            imagenesGrupos.add(R.drawable.imagen4);
-            adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
-            binding.gridView.setAdapter(adapter);
-        }
+        imagenesGrupos = activity.getImagenes();
+        adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
+        binding.gridView.setAdapter(adapter);
+    }
+
+    public void actualizarInterfaz() {
+        cargarGrid();
         mostrarTextoAlternativo();
     }
 
+
     public void cargarVistaGrupos(Integer idUsuario) {
-        Thread tarea = new Thread(() -> {
+        executorService.execute(() -> {
             try {
                 cargarNombreUsuario(idUsuario);
-                cargarGrupos(idUsuario);
             } catch (ExcepcionAlbumFamiliar e) {
-                // Error
+                throw new RuntimeException(e);
+            }
+            mainHandler.post(() -> {
+                // Update UI components here
+                saludoUsuario.setText(saludo);
+            });
+        });
+        executorService.execute(() -> {
+            try {
+                cargarGrupos(idUsuario);
+
+                // Post results back to the main thread
+                mainHandler.post(() -> {
+                    // Update UI components here
+                    actualizarInterfaz();
+                });
+            } catch (ExcepcionAlbumFamiliar e) {
+                // Handle exceptions here
             }
         });
-        tarea.start();
-        try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            // Error
-        }
-        cargarGrid();
+        executorService.execute(() -> {
+            activity.cargarImagenesDrive();
+
+            // Post results back to the main thread
+            mainHandler.post(() -> {
+                // Update UI components here
+                actualizarInterfaz();
+            });
+        });
+//        Thread tarea = new Thread(() -> {
+//            try {
+//                cargarNombreUsuario(idUsuario);
+//                activity.cargarImagenesDrive();
+//                cargarGrupos(idUsuario);
+//            } catch (ExcepcionAlbumFamiliar e) {
+//                // Error
+//            }
+//        });
+//        tarea.start();
+//        try {
+//            tarea.join(5000);
+//        } catch (InterruptedException e) {
+//            // Error
+//        }
+//                cargarGrid();
+//                mostrarTextoAlternativo();
+
     }
 
     public void eliminarGrupo(int idGrupo) {

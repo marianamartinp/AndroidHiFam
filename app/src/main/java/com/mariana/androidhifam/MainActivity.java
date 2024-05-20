@@ -3,6 +3,7 @@ package com.mariana.androidhifam;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
@@ -26,13 +27,22 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.mariana.androidhifam.databinding.ActivityMainBinding;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import ccalbumfamiliar.CCAlbumFamiliar;
+import driveapi.DatosArchivo;
 import driveapi.DriveServiceHelper;
+import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+import pojosalbumfamiliar.Grupo;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, DriveServiceHelper.DriveServiceInitialization {
 
@@ -42,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private Integer idUsuario;
     private SwipeToRefreshLayout refreshLayout;
     private DriveServiceHelper driveServiceHelper;
+    private CCAlbumFamiliar cliente;
+    private ArrayList<File> imagenes;
 
 
     public interface SwipeToRefreshLayout {
@@ -53,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         super.onCreate(savedInstanceState);
         //EdgeToEdge.enable(this);
         // Configuración del binding
+        cliente = new CCAlbumFamiliar();
+        imagenes = new ArrayList<>();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         View root = binding.getRoot();
@@ -181,6 +195,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public Integer getIdUsuario() {
         return idUsuario;
     }
+    public CCAlbumFamiliar getCliente() {
+        return cliente;
+    }
+    public ArrayList<File> getImagenes() {
+        return imagenes;
+    }
 
     public DriveServiceHelper getDriveServiceHelper() {
         return driveServiceHelper;
@@ -200,5 +220,70 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         });
         executor.shutdown();
+    }
+
+    // Métodos comunes
+    public void cargarImagenesDrive() {
+        try {
+            LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
+            String queryGruposActivos = "(uig.COD_USUARIO = " + idUsuario + " and g.FECHA_ELIMINACION is null)";
+            String queryGruposEliminados = " or (g.COD_USUARIO_ADMIN_GRUPO = " + idUsuario + " and g.FECHA_ELIMINACION is not null)";
+            filtros.put(queryGruposActivos, queryGruposEliminados);
+            LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
+            ordenacion.put("g.titulo", "asc");
+            ArrayList<Grupo> grupos = cliente.leerGrupos(filtros,ordenacion);
+            File directorio = getExternalFilesDir(null);
+            if (null != directorio) {
+                eliminarContenido(directorio);
+            }
+            for (Grupo grupo : grupos) {
+                driveServiceHelper.listFiles(grupo.getCodGrupo());
+            }
+        } catch (ExcepcionAlbumFamiliar e) {
+            throw new RuntimeException(e);
+        }
+        getAllImagesFromAppDirectory();
+    }
+
+    public static void eliminarContenido(File directorio) {
+        if (directorio.isDirectory()) {
+            File[] files = directorio.listFiles();
+            if (files != null) {
+                for (File child : files) {
+                    eliminarContenido(child);
+                }
+            }
+        }
+        directorio.delete();
+    }
+
+    private void getAllImagesFromAppDirectory() {
+        imagenes = new ArrayList<>();
+        // Get the directory where your app stores files
+        File directory = getExternalFilesDir(null); // or use getExternalFilesDir(null) for external storage
+        // Get all files in the directory
+        File[] files = directory.listFiles();
+        // Check if the directory is not empty
+        if (files != null) {
+            for (File file : files) {
+                // Check if the file is an image by checking its extension
+                if (file.isFile() && isImageFile(file)) {
+                    imagenes.add(file);
+                }
+            }
+        }
+    }
+
+    private boolean isImageFile(File file) {
+        // Check the file extension to determine if it's an image
+        String[] imageExtensions = {".jpg", ".jpeg", ".png"};
+        String fileName = file.getName().toLowerCase();
+
+        for (String extension : imageExtensions) {
+            if (fileName.endsWith(extension)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -46,88 +46,77 @@ public class DriveServiceHelper {
         this.context = context;
     }
 
-    public Task<Void> listFiles(int idGrupo) {
-        TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
-        mExecutor.execute(() -> {
-            String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
-            String query = "'" + folderId + "' in parents and trashed = false";
-            FileList result = null;
-            try {
-                result = driveService.files().list()
-                        .setQ(query)
-                        .setPageSize(10)
-                        .setFields("nextPageToken, files(id, name)")
-                        .execute();
-                for (File file : result.getFiles()) {
-                    Log.e("hey", "Found file: "+file.getName()+file.getId());
-                    Uri contentUri = Uri.parse("content://com.mariana.myapplication/files/" + file.getId());
-                    Log.i("uri", contentUri.toString());
-                    if (archivoNecesario(file.getName(), idGrupo)) {
-                        downloadFileToAppDataDirectory(file.getId(), file.getName())
-                                .addOnSuccessListener(aVoid -> Log.i("FileDownload", "File downloaded successfully."))
-                                .addOnFailureListener(e -> Log.e("FileDownload", "File download failed.", e));
-                    }
+    public void listFiles(int idGrupo) {
+        String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
+        String query = "'" + folderId + "' in parents and trashed = false";
+        FileList result = null;
+        try {
+            result = driveService.files().list()
+                    .setQ(query)
+                    .setPageSize(10)
+                    .setFields("nextPageToken, files(id, name)")
+                    .execute();
+            for (File file : result.getFiles()) {
+                Log.e("hey", "Found file: "+file.getName()+file.getId());
+//                Uri contentUri = Uri.parse("content://com.mariana.myapplication/files/" + file.getId());
+//                Log.i("uri", contentUri.toString());
+                if (archivoNecesario(file.getName(), idGrupo)) {
+                    downloadFileToAppDataDirectory(file.getId(), file.getName());
                 }
-            } catch (Exception e) {
-                taskCompletionSource.setException(e);
             }
-        });
-        return taskCompletionSource.getTask();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
-    public Task<DatosArchivo> uploadImageFile(Uri fileUri, int idGrupo, int idAlbum) {
-        TaskCompletionSource<DatosArchivo> taskCompletionSource = new TaskCompletionSource<>();
-        mExecutor.execute(() -> {
-            String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
-            try {
-                // Get the MIME type of the file
-                String mimeType = context.getContentResolver().getType(fileUri);
-                Log.e("ID", mimeType);
-                if (null != mimeType && (mimeType.equals("image/png") || mimeType.equals("image/jpeg"))) {
-                    // Get the file name
-                    String fileName = String.format("%03d", idGrupo) + String.format("%05d", idAlbum) + generateTimeHash() + "." + mimeType.substring(6);
+    public DatosArchivo uploadImageFile(Uri fileUri, int idGrupo, int idAlbum) {
+        String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
+        File googleFile = null;
+        try {
+            // Get the MIME type of the file
+            String mimeType = context.getContentResolver().getType(fileUri);
+            Log.e("ID", mimeType);
+            if (null != mimeType && (mimeType.equals("image/png") || mimeType.equals("image/jpeg"))) {
+                // Get the file name
+                String fileName = String.format("%03d", idGrupo) + String.format("%05d", idAlbum) + generateTimeHash() + "." + mimeType.substring(6);
 
-                    // Create a temporary file
-                    java.io.File tempFile = java.io.File.createTempFile("temp", null, context.getCacheDir());
-                    try (InputStream inputStream = context.getContentResolver().openInputStream(fileUri);
-                         FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+                // Create a temporary file
+                java.io.File tempFile = java.io.File.createTempFile("temp", null, context.getCacheDir());
+                try (InputStream inputStream = context.getContentResolver().openInputStream(fileUri);
+                     FileOutputStream outputStream = new FileOutputStream(tempFile)) {
 
-                        if (inputStream != null) {
-                            byte[] buffer = new byte[1024];
-                            int bytesRead;
-                            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                                outputStream.write(buffer, 0, bytesRead);
-                            }
+                    if (inputStream != null) {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
                         }
                     }
-
-                    // Create the file metadata
-                    File metadata = new File()
-                            .setName(fileName)
-                            .setMimeType(mimeType)
-                            .setParents(Collections.singletonList(folderId));
-
-                    // Create a FileContent object with the temporary file
-                    FileContent fileContent = new FileContent(mimeType, tempFile);
-
-                    // Upload the file
-                    File googleFile = driveService.files().create(metadata, fileContent).execute();
-                    if (googleFile == null) {
-                        throw new IOException("Null result when requesting file creation.");
-                    }
-                    else {
-                        Log.e("ID", googleFile.getId());
-                        downloadFileToAppDataDirectory(googleFile.getId(), googleFile.getName());
-                    }
-
-                    taskCompletionSource.setResult(new DatosArchivo(googleFile.getId(), googleFile.getName()));
                 }
-            } catch (Exception e) {
-                taskCompletionSource.setException(e);
+
+                // Create the file metadata
+                File metadata = new File()
+                        .setName(fileName)
+                        .setMimeType(mimeType)
+                        .setParents(Collections.singletonList(folderId));
+
+                // Create a FileContent object with the temporary file
+                FileContent fileContent = new FileContent(mimeType, tempFile);
+
+                // Upload the file
+                googleFile = driveService.files().create(metadata, fileContent).execute();
+                if (googleFile == null) {
+                    throw new IOException("Null result when requesting file creation.");
+                }
+                else {
+                    downloadFileToAppDataDirectory(googleFile.getId(), googleFile.getName());
+                }
             }
-        });
-        return taskCompletionSource.getTask();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new DatosArchivo(googleFile.getId(), googleFile.getName());
     }
 
 
@@ -145,40 +134,33 @@ public class DriveServiceHelper {
     }
 
 
-    private Task<Void> downloadFileToAppDataDirectory(String fileId, String fileName) {
-        TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
-        mExecutor.execute(() -> {
-            try {
-                // Get the application's internal files directory
-                java.io.File directory = context.getExternalFilesDir(null);
-                java.io.File file = new java.io.File(directory, fileName);
+    public void downloadFileToAppDataDirectory(String fileId, String fileName) throws RuntimeException {
+        try {
+            // Get the application's internal files directory
+            java.io.File directory = context.getExternalFilesDir(null);
+            java.io.File file = new java.io.File(directory, fileName);
 
-                // Create a new FileOutputStream for the file
-                FileOutputStream fos = new FileOutputStream(file);
+            // Create a new FileOutputStream for the file
+            FileOutputStream fos = new FileOutputStream(file);
 
-                // Download the file content from Drive
-                InputStream is = driveService.files().get(fileId).executeMediaAsInputStream();
+            // Download the file content from Drive
+            InputStream is = driveService.files().get(fileId).executeMediaAsInputStream();
 
-                // Read from the InputStream and write to the FileOutputStream
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
-                }
-
-                // Close the streams
-                fos.close();
-                is.close();
-
-                // Mark the task as successful
-                taskCompletionSource.setResult(null);
-            } catch (IOException e) {
-                Log.e("Error", "Failed to download file: " + e.getMessage());
-                // Mark the task as failed
-                taskCompletionSource.setException(e);
+            // Read from the InputStream and write to the FileOutputStream
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
             }
-        });
-        return taskCompletionSource.getTask();
+
+            // Close the streams
+            fos.close();
+            is.close();
+
+        } catch (IOException e) {
+            Log.e("Error", "Failed to download file: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
 
