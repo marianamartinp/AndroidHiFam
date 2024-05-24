@@ -83,6 +83,13 @@
         <argument
             android:name="idGrupo"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_albumesFragment_to_nuevoAlbumFragment"
+            app:destination="@id/nuevoAlbumFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/publicacionesFragment"
@@ -225,4 +232,13 @@
         android:name="com.mariana.androidhifam.ModalFragment"
         android:label="fragment_modal"
         tools:layout="@layout/fragment_modal" />
+    <fragment
+        android:id="@+id/nuevoAlbumFragment"
+        android:name="com.mariana.androidhifam.NuevoAlbumFragment"
+        android:label="fragment_nuevo_album"
+        tools:layout="@layout/fragment_nuevo_album" >
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
+    </fragment>
 </navigation>

@@ -12,6 +12,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.view.LayoutInflater;
@@ -25,6 +27,8 @@ import com.mariana.androidhifam.databinding.FragmentIngresoGrupoBinding;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
@@ -39,11 +43,16 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
     private NavController navController;
     private CCAlbumFamiliar cliente;
     private MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activity = (MainActivity) getActivity();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @NonNull
@@ -70,7 +79,6 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
         int id = v.getId();
         if (id == R.id.botonEnviarSolicitud) {
             solicitarEntradaEnGrupo();
-            dismiss();
         }
     }
 
@@ -80,30 +88,36 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
     }
 
     public void solicitarEntradaEnGrupo() {
-        AtomicReference<Integer> resultado = new AtomicReference<>();
-        Thread tarea = new Thread(() -> {
+        executorService.execute(() -> {
             try {
                 Usuario usuario = new Usuario();
                 usuario.setCodUsuario(activity.getIdUsuario());
                 Grupo grupo = new Grupo();
                 grupo.setCodGrupo(Integer.parseInt(binding.editableCodigo.getText().toString().trim()));
-                resultado.set(cliente.insertarSolicitudEntradaGrupo(new SolicitudEntradaGrupo(grupo,usuario,null)));
-            } catch (ExcepcionAlbumFamiliar e) {
-                // Error
+                cliente.insertarSolicitudEntradaGrupo(new SolicitudEntradaGrupo(grupo,usuario,null));
+                mainHandler.post(() -> {
+                    Toast.makeText(requireContext(), "Se ha enviado tu solicitud.", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                });
+            }
+            catch (ExcepcionAlbumFamiliar e) {
+                String mensaje;
+                switch (e.getCodErrorBd()) {
+                    case 1400:
+                    case 20008:
+                    case 2291:
+                        mensaje = "Introduce un código de grupo válido.";
+                        break;
+                    case 1:
+                        mensaje = "No se pueden realizar varias solicitudes a un mismo grupo";
+                        break;
+                    default:
+                        mensaje = e.getMensajeUsuario();
+                        break;
+                }
+                mainHandler.post(() -> Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show());
             }
         });
-        tarea.start();
-        try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            // Error
-        }
-        if (null != resultado.get() && resultado.get() > 0) {
-            Toast.makeText(requireContext(), "Se ha enviado tu solicitud.", Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Toast.makeText(requireContext(), "Error.", Toast.LENGTH_SHORT).show();
-        }
     }
 
 }

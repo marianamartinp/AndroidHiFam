@@ -8,9 +8,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,6 +21,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -29,6 +34,9 @@ import com.mariana.androidhifam.databinding.FragmentAlbumesBinding;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
@@ -42,8 +50,11 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     GridAdapter<Album> adapter;
     private CCAlbumFamiliar cliente;
     private Integer idGrupo;
-    private String portadaAlbum;
     private MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private NavController navController;
+    private boolean vistaCreada = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,12 +66,15 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         }
         albumes = new ArrayList<>();
         activity = (MainActivity) getActivity();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentAlbumesBinding.inflate(inflater, container, false);
         cliente = activity.getCliente();
+        navController = navController = NavHostFragment.findNavController(this);
         return binding.getRoot();
     }
 
@@ -89,8 +103,13 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
                 // Empty method body, not needed for this purpose
             }
         });
-        cargarVistaAlbumes(idGrupo);
 
+        if (vistaCreada) {
+            actualizarInterfaz();
+        }
+        else {
+            cargarVistaAlbumes(idGrupo, false);
+        }
         registerForContextMenu(binding.gridView);
 
         binding.gridView.setOnItemClickListener(this);
@@ -118,23 +137,42 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.menu_grupos_admin, menu);
+        if (activity.getHabilitarInteraccion()) {
+            super.onCreateContextMenu(menu, v, menuInfo);
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.menu_grupos_admin, menu);
+        }
     }
 
-    public void cargarTituloGrupo(Integer idGrupo) throws ExcepcionAlbumFamiliar {
-        binding.tituloGrupo.setText(cliente.leerGrupo(idGrupo).getTitulo());
+    public void cargarTituloGrupo(Integer idGrupo, CountDownLatch latch) {;
+        try {
+            String tituloGrupo = cliente.leerGrupo(idGrupo).getTitulo();
+            mainHandler.post(() -> binding.tituloGrupo.setText(tituloGrupo));
+        }
+        catch (ExcepcionAlbumFamiliar e) {
+            mainHandler.post(this::errorAlCargarInterfaz);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
-
-    public void cargarAlbumes(Integer idGrupo) throws ExcepcionAlbumFamiliar {
-        LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-        filtros.put("a.COD_GRUPO_CREA_ALBUM", "="+idGrupo);
-        filtros.put("a.FECHA_ELIMINACION", "is null");
-        LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
-        ordenacion.put("a.titulo", "asc");
-        albumes = cliente.leerAlbumes(filtros,ordenacion);
+    public void cargarAlbumes(Integer idGrupo, CountDownLatch latch) {
+        try {
+            LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
+            filtros.put("a.COD_GRUPO_CREA_ALBUM", "="+idGrupo);
+            filtros.put("a.FECHA_ELIMINACION", "is null");
+            LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
+            ordenacion.put("a.titulo", "asc");
+            albumes = cliente.leerAlbumes(filtros,ordenacion);
+            mainHandler.post(this::actualizarInterfaz);
+        }
+        catch(ExcepcionAlbumFamiliar e) {
+            mainHandler.post(this::errorAlCargarInterfaz);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
     public void cargarGrid() {
@@ -143,24 +181,45 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         binding.gridView.setAdapter(adapter);
     }
 
-    public void cargarVistaAlbumes(Integer idGrupo) {
-        Thread tarea = new Thread(() -> {
-            try {
-                cargarTituloGrupo(idGrupo);
-                activity.cargarImagenesDrive();
-                cargarAlbumes(idGrupo);
-            } catch (ExcepcionAlbumFamiliar e) {
-                //throw new RuntimeException(e);
-            }
-        });
-        tarea.start();
-        try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public void actualizarInterfaz() {
         cargarGrid();
         mostrarTextoAlternativo();
+    }
+
+    public void cargarImagenesDrive(CountDownLatch latch) {
+        try {
+            activity.cargarImagenesDrive(false);
+        } finally {
+            latch.countDown();
+        }
+    }
+
+    public void cargarVistaAlbumes(Integer idGrupo, boolean refrescar) {
+        activity.setHabilitarInteraccion(false);
+        Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+        CountDownLatch latch = new CountDownLatch(3);
+        binding.gridView.startAnimation(parpadeo);
+        executorService.execute(() -> cargarTituloGrupo(idGrupo, latch));
+        executorService.execute(() -> cargarAlbumes(idGrupo, latch));
+        executorService.execute(() -> {
+            cargarImagenesDrive(latch);
+            mainHandler.post(this::actualizarInterfaz);
+        });
+        executorService.execute(() -> {
+            try {
+                latch.await();
+                mainHandler.post(() -> {
+                    binding.gridView.clearAnimation();
+                    if (refrescar) {
+                        Toast.makeText(getContext(), "Se han actualizado los álbumes.", Toast.LENGTH_SHORT).show();
+                    }
+                    activity.setHabilitarInteraccion(true);
+                    vistaCreada = true;
+                });
+            } catch (InterruptedException e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
     }
 
     public void menuPopUp() {
@@ -178,28 +237,29 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     @Override
     public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonNuevoAlbum) {
-            Toast.makeText(requireContext(), "Añadir album", Toast.LENGTH_SHORT).show();
-        }
-        else if (id == R.id.botonOpciones) {
-            menuPopUp();
-        }
-        else if (id == R.id.botonUsuarios) {
-            Toast.makeText(requireContext(), "Usuarios del album", Toast.LENGTH_SHORT).show();
+        if (activity.getHabilitarInteraccion()) {
+            int id = v.getId();
+            if (id == R.id.botonNuevoAlbum) {
+                navController.navigate(AlbumesFragmentDirections.actionAlbumesFragmentToNuevoAlbumFragment(idGrupo));
+            } else if (id == R.id.botonOpciones) {
+                menuPopUp();
+            } else if (id == R.id.botonUsuarios) {
+                Toast.makeText(requireContext(), "Usuarios del album", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        findNavController(view).navigate(AlbumesFragmentDirections.actionAlbumesFragmentToPublicacionesFragment((int)id, idGrupo));
+        if (activity.getHabilitarInteraccion()) {
+            findNavController(view).navigate(AlbumesFragmentDirections.actionAlbumesFragmentToPublicacionesFragment((int) id, idGrupo));
+        }
     }
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaAlbumes(idGrupo);
-        Toast.makeText(getContext(), "Se han actualizado los álbumes.", Toast.LENGTH_SHORT).show();
+        cargarVistaAlbumes(idGrupo, true);
     }
 
     public void mostrarTextoAlternativo() {
@@ -211,5 +271,9 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         else {
             binding.textoAlternativo.setVisibility(View.INVISIBLE);
         }
+    }
+
+    public void errorAlCargarInterfaz() {
+        Toast.makeText(getContext(), "Error al cargar los álbumes.", Toast.LENGTH_SHORT).show();
     }
 }

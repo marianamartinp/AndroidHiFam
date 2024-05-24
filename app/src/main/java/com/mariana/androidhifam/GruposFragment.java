@@ -11,6 +11,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -22,17 +24,20 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bumptech.glide.Glide;
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
+import pojosalbumfamiliar.Publicacion;
 
 public class GruposFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
 
@@ -45,10 +50,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     private TextView saludoUsuario;
     private Integer idUsuario;
     private Boolean animar;
-    private  MainActivity activity;
+    private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
-    private String saludo;
+    private boolean vistaCreada = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -101,7 +106,12 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
             }
         });
         binding.gridView.setOnItemClickListener(this);
-        cargarVistaGrupos(idUsuario);
+        if (vistaCreada) {
+            actualizarInterfaz();
+        }
+        else {
+            cargarVistaGrupos(idUsuario, false);
+        }
     }
 
     @Override
@@ -124,11 +134,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
             return true;
         }
         else if (idMenuItem == R.id.eliminarGrupo) {
-            Toast.makeText(requireContext(), "Grupo eliminado.", Toast.LENGTH_SHORT).show();
-            eliminarGrupo(itemId);
-            grupos.remove(position);
-            adapter.notifyDataSetChanged();
-            mostrarTextoAlternativo();
+            eliminarGrupo(itemId, position);
             return true;
         }
         else {
@@ -138,48 +144,71 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.menu_grupos_admin, menu);
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        if (activity.getHabilitarInteraccion()) {
+            super.onCreateContextMenu(menu, v, menuInfo);
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.menu_grupos_admin, menu);
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        }
     }
 
     @Override
     public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonNuevaFamilia) {
-            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToMenuAnyadirGrupoFragment());
-        }
-        else if (id == R.id.botonPapelera) {
-            findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToGruposRecuperablesFragment(idUsuario));
+        if (activity.getHabilitarInteraccion()) {
+            int id = v.getId();
+            if (id == R.id.botonNuevaFamilia) {
+                findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToMenuAnyadirGrupoFragment());
+            } else if (id == R.id.botonPapelera) {
+                findNavController(v).navigate(GruposFragmentDirections.actionGruposFragmentToGruposRecuperablesFragment(idUsuario));
+            }
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        findNavController(view).navigate(GruposFragmentDirections.actionGruposFragmentToAlbumesFragment((int)id));
+        if (activity.getHabilitarInteraccion()) {
+            findNavController(view).navigate(GruposFragmentDirections.actionGruposFragmentToAlbumesFragment((int) id));
+        }
     }
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaGrupos(idUsuario);
-        Toast.makeText(getContext(), "Se han actualizado las familias.", Toast.LENGTH_SHORT).show();
+        cargarVistaGrupos(idUsuario, true);
     }
 
-    public void cargarNombreUsuario(Integer idUsuario) throws ExcepcionAlbumFamiliar {
-        String nombreUsuario = cliente.leerUsuario(idUsuario).getNombre().split(" ", 2)[0];
-        saludo = getString(R.string.saludoUsuarioPersonalizado, nombreUsuario);
-//        saludoUsuario.setText(saludo);
+    public void cargarNombreUsuario(Integer idUsuario, CountDownLatch latch) {
+        try {
+            String nombreUsuario = cliente.leerUsuario(idUsuario).getNombre().split(" ", 2)[0];
+            String saludo = getString(R.string.saludoUsuarioPersonalizado, nombreUsuario);
+            mainHandler.post(() -> saludoUsuario.setText(saludo));
+        }
+        catch (ExcepcionAlbumFamiliar e) {
+            throw new RuntimeException(e);
+//            mainHandler.post(this::errorAlCargarInterfaz);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
-    public void cargarGrupos(Integer idUsuario) throws ExcepcionAlbumFamiliar {
-        LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-        filtros.put("uig.COD_USUARIO", "="+idUsuario);
-        filtros.put("g.FECHA_ELIMINACION", "is null");
-        LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
-        ordenacion.put("g.titulo", "asc");
-        grupos = cliente.leerGrupos(filtros,ordenacion);
+    public void cargarGrupos(Integer idUsuario, CountDownLatch latch) {
+        try {
+            LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
+            filtros.put("uig.COD_USUARIO", "=" + idUsuario);
+            filtros.put("g.FECHA_ELIMINACION", "is null");
+            LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
+            ordenacion.put("g.titulo", "asc");
+            grupos = cliente.leerGrupos(filtros, ordenacion);
+            mainHandler.post(this::actualizarInterfaz);
+        }
+        catch(ExcepcionAlbumFamiliar e) {
+            throw new RuntimeException(e);
+//            mainHandler.post(this::errorAlCargarInterfaz);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
     public void cargarGrid() {
@@ -193,77 +222,57 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         mostrarTextoAlternativo();
     }
 
-
-    public void cargarVistaGrupos(Integer idUsuario) {
-        executorService.execute(() -> {
-            try {
-                cargarNombreUsuario(idUsuario);
-            } catch (ExcepcionAlbumFamiliar e) {
-                throw new RuntimeException(e);
-            }
-            mainHandler.post(() -> {
-                // Update UI components here
-                saludoUsuario.setText(saludo);
-            });
-        });
-        executorService.execute(() -> {
-            try {
-                cargarGrupos(idUsuario);
-
-                // Post results back to the main thread
-                mainHandler.post(() -> {
-                    // Update UI components here
-                    actualizarInterfaz();
-                });
-            } catch (ExcepcionAlbumFamiliar e) {
-                // Handle exceptions here
-            }
-        });
-        executorService.execute(() -> {
-            activity.cargarImagenesDrive();
-
-            // Post results back to the main thread
-            mainHandler.post(() -> {
-                // Update UI components here
-                actualizarInterfaz();
-            });
-        });
-//        Thread tarea = new Thread(() -> {
-//            try {
-//                cargarNombreUsuario(idUsuario);
-//                activity.cargarImagenesDrive();
-//                cargarGrupos(idUsuario);
-//            } catch (ExcepcionAlbumFamiliar e) {
-//                // Error
-//            }
-//        });
-//        tarea.start();
-//        try {
-//            tarea.join(5000);
-//        } catch (InterruptedException e) {
-//            // Error
-//        }
-//                cargarGrid();
-//                mostrarTextoAlternativo();
-
-    }
-
-    public void eliminarGrupo(int idGrupo) {
-        Thread tarea = new Thread(() -> {
-            try {
-                cliente.eliminarGrupo(idGrupo);
-            } catch (ExcepcionAlbumFamiliar e) {
-                // Error
-            }
-        });
-        tarea.start();
+    public void cargarImagenesDrive(CountDownLatch latch) {
         try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            // Error
+            activity.cargarImagenesDrive(true);
+        } finally {
+            latch.countDown();
         }
     }
 
+    public void cargarVistaGrupos(Integer idUsuario, boolean refrescar) {
+        activity.setHabilitarInteraccion(false);
+        Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+        CountDownLatch latch = new CountDownLatch(3);
+        binding.gridView.startAnimation(parpadeo);
+        executorService.execute(() -> cargarNombreUsuario(idUsuario, latch));
+        executorService.execute(() -> cargarGrupos(idUsuario, latch));
+        executorService.execute(() -> {
+            cargarImagenesDrive(latch);
+            mainHandler.post(this::actualizarInterfaz);
+        });
+        executorService.execute(() -> {
+            try {
+                latch.await();
+                mainHandler.post(() -> {
+                    binding.gridView.clearAnimation();
+                    if (refrescar) {
+                        Toast.makeText(getContext(), "Se han actualizado las familias.", Toast.LENGTH_SHORT).show();
+                    }
+                    activity.setHabilitarInteraccion(true);
+                    vistaCreada = true;
+                });
+            } catch (InterruptedException e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
+    }
+
+    public void eliminarGrupo(int idGrupo, int position) {
+        executorService.execute(() -> {
+            try {
+                cliente.eliminarGrupo(idGrupo);
+                mainHandler.post(() -> {
+                    grupos.remove(position);
+                    adapter.notifyDataSetChanged();
+                    mostrarTextoAlternativo();
+                    Toast.makeText(requireContext(), "Grupo eliminado.", Toast.LENGTH_SHORT).show();
+                });
+            } catch (ExcepcionAlbumFamiliar e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
+    }
 
     public void mostrarTextoAlternativo() {
         if (grupos.isEmpty()) {
@@ -274,6 +283,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         else {
             binding.textoAlternativo.setVisibility(View.INVISIBLE);
         }
+    }
+
+    public void errorAlCargarInterfaz() {
+        Toast.makeText(getContext(), "Error al cargar las familias.", Toast.LENGTH_SHORT).show();
     }
 
 }

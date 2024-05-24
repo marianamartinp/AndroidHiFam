@@ -4,12 +4,15 @@ import static androidx.navigation.Navigation.findNavController;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -25,6 +28,9 @@ import com.mariana.androidhifam.databinding.FragmentGruposRecuperablesBinding;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
@@ -40,6 +46,10 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     private GridAdapter<Grupo> adapter;
     private CCAlbumFamiliar cliente;
     private Integer idUsuario;
+    private MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private boolean vistaCreada = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +60,9 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         }
         cliente = new CCAlbumFamiliar();
         grupos = new ArrayList<>();
+        activity = (MainActivity) getActivity();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -82,7 +95,12 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
             }
         });
         binding.gridView.setOnItemClickListener(this);
-        cargarVistaGrupos(idUsuario);
+        if (vistaCreada) {
+            actualizarInterfaz();
+        }
+        else {
+            cargarVistaGrupos(idUsuario, false);
+        }
     }
 
     @Override
@@ -115,32 +133,37 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.menu_grupos_recuperables, menu);
+        if (activity.getHabilitarInteraccion()) {
+            super.onCreateContextMenu(menu, v, menuInfo);
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.menu_grupos_recuperables, menu);
+        }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        modalRecuperarGrupo(position, (int) id);
+        if (activity.getHabilitarInteraccion()) {
+            modalRecuperarGrupo(position, (int) id);
+        }
     }
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaGrupos(idUsuario);
-        Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
+        cargarVistaGrupos(idUsuario, true);
     }
 
     @Override
     public void onPositiveClick(int position, int id) {
-        if (recuperarGrupo(id) > 0) {
-            Toast.makeText(getContext(), "Se ha restaurado el grupo.", Toast.LENGTH_SHORT).show();
-            grupos.remove(position);
-            adapter.notifyDataSetChanged();
-            mostrarTextoAlternativo();
-        } else {
-            Toast.makeText(getContext(), "Se ha producido un error.", Toast.LENGTH_SHORT).show();
+        if (activity.getHabilitarInteraccion()) {
+            if (recuperarGrupo(id) > 0) {
+                Toast.makeText(getContext(), "Se ha restaurado el grupo.", Toast.LENGTH_SHORT).show();
+                grupos.remove(position);
+                adapter.notifyDataSetChanged();
+                mostrarTextoAlternativo();
+            } else {
+                Toast.makeText(getContext(), "Se ha producido un error.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -148,38 +171,68 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     public void onNegativeClick(int position, int id) {
     }
 
-    public void cargarGrupos(Integer idUsuario) throws ExcepcionAlbumFamiliar {
-        LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-        filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + idUsuario);
-        filtros.put("g.FECHA_ELIMINACION", "is not null");
-        LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
-        ordenacion.put("g.titulo", "asc");
-        grupos = cliente.leerGrupos(filtros, ordenacion);
+    public void cargarGrupos(Integer idUsuario, CountDownLatch latch) {
+        try {
+            LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
+            filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + idUsuario);
+            filtros.put("g.FECHA_ELIMINACION", "is not null");
+            LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
+            ordenacion.put("g.titulo", "asc");
+            grupos = cliente.leerGrupos(filtros, ordenacion);
+            mainHandler.post(this::actualizarInterfaz);
+        }
+        catch (ExcepcionAlbumFamiliar e) {
+            throw new RuntimeException(e);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
     public void cargarGrid() {
-        imagenesGrupos = new ArrayList<>();
-
+        imagenesGrupos = activity.getImagenes();
         adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
         binding.gridView.setAdapter(adapter);
     }
 
-    public void cargarVistaGrupos(Integer idUsuario) {
-        Thread tarea = new Thread(() -> {
-            try {
-                cargarGrupos(idUsuario);
-            } catch (ExcepcionAlbumFamiliar e) {
-                // Error
-            }
-        });
-        tarea.start();
-        try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            // Error
-        }
+    public void actualizarInterfaz() {
         cargarGrid();
         mostrarTextoAlternativo();
+    }
+
+    public void cargarImagenesDrive(CountDownLatch latch) {
+        try {
+            activity.cargarImagenesDrive(true);
+        } finally {
+            latch.countDown();
+        }
+    }
+
+    public void cargarVistaGrupos(Integer idUsuario, boolean refrescar) {
+        activity.setHabilitarInteraccion(false);
+        Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+        CountDownLatch latch = new CountDownLatch(2);
+        binding.gridView.startAnimation(parpadeo);
+        executorService.execute(() -> cargarGrupos(idUsuario, latch));
+        executorService.execute(() -> {
+            cargarImagenesDrive(latch);
+            mainHandler.post(this::actualizarInterfaz);
+        });
+        executorService.execute(() -> {
+            try {
+                latch.await();
+                mainHandler.post(() -> {
+                    binding.gridView.clearAnimation();
+                    if (refrescar) {
+                        Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
+                    }
+                    activity.setHabilitarInteraccion(true);
+                    vistaCreada = true;
+                });
+            } catch (InterruptedException e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
     }
 
     public void modalRecuperarGrupo(int position, int id) {
@@ -213,5 +266,9 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         } else {
             binding.textoAlternativo.setVisibility(View.INVISIBLE);
         }
+    }
+
+    public void errorAlCargarInterfaz() {
+        Toast.makeText(getContext(), "Error al cargar las familias eliminadas.", Toast.LENGTH_SHORT).show();
     }
 }

@@ -7,9 +7,12 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +20,14 @@ import android.widget.Toast;
 
 import com.mariana.androidhifam.databinding.FragmentNuevoGrupoBinding;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
@@ -33,23 +39,27 @@ import pojosalbumfamiliar.UsuarioIntegraGrupo;
 public class NuevoGrupoFragment extends Fragment implements View.OnClickListener, ListAdapter.OnItemClickListener {
 
     private @NonNull FragmentNuevoGrupoBinding binding;
-    private String tituloAlbum;
     private ArrayList<Usuario> usuarios;
-    private Integer idPublicacion, imagenPublicacion;
     private CCAlbumFamiliar cliente;
     private ListAdapter<Usuario> adapter;
     private MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private NavController navController;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activity = (MainActivity) getActivity();
         usuarios = new ArrayList<>();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentNuevoGrupoBinding.inflate(inflater, container, false);
+        navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
         return binding.getRoot();
     }
@@ -57,7 +67,6 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         binding.botonNuevaFamilia.setOnClickListener(this);
         binding.botonAnyadirUsuario.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);
@@ -68,98 +77,85 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
 
     }
 
-    public boolean crearGrupo() {
-        AtomicBoolean creadoCorrectamente = new AtomicBoolean(false);
-        AtomicInteger usuariosInsertados = new AtomicInteger();
-        AtomicInteger gruposDuplicados = new AtomicInteger();
+    public void crearGrupo() {
         String tituloFamilia = binding.tituloFamilia.getText().toString().trim();
+        String descripcionFamilia = binding.descripcionFamilia.getText().toString().trim();
         if (!tituloFamilia.isEmpty()) {
             Grupo grupo = new Grupo();
             grupo.setTitulo(tituloFamilia);
-            if (!binding.descripcionFamilia.getText().toString().trim().isEmpty()) {
-                grupo.setDescripcion(binding.descripcionFamilia.getText().toString().trim());
+            if (!descripcionFamilia.isEmpty()) {
+                grupo.setDescripcion(descripcionFamilia);
             }
             Usuario usuarioAdmin = new Usuario();
             usuarioAdmin.setCodUsuario(activity.getIdUsuario());
             grupo.setUsuarioAdminGrupo(usuarioAdmin);
 
-            Thread tarea = new Thread(() -> {
+            executorService.execute(() -> {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                sdf.setLenient(false);
                 LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
                 filtros.put("g.TITULO", "= '" + tituloFamilia + "'");
                 filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + activity.getIdUsuario());
+                filtros.put("g.FECHA_CREACION", "= '" + sdf.format(new Date()) + "'");
+                if (!descripcionFamilia.isEmpty()) {
+                    filtros.put("g.DESCRIPCION", "='" + descripcionFamilia + "'");
+                }
                 try {
-                    gruposDuplicados.set(cliente.leerGrupos(filtros, null).size());
-                    if (gruposDuplicados.get() == 0) {
-                        int gruposInsertados = cliente.insertarGrupo(grupo);
-                        if (gruposInsertados > 0) {
-                            Grupo grupoCreado = cliente.leerGrupos(filtros, null).get(0);
+                    int gruposInsertados = cliente.insertarGrupo(grupo);
+                    if (gruposInsertados > 0) {
+                        ArrayList<Grupo> gruposCreados = cliente.leerGrupos(filtros, null);
+                        if (null != gruposCreados && !gruposCreados.isEmpty()) {
                             for (Usuario usuario : usuarios) {
-                                usuariosInsertados.set(usuariosInsertados.get() + cliente.insertarUsuarioIntegraGrupo(new UsuarioIntegraGrupo(usuario, grupoCreado)));
+                                cliente.insertarUsuarioIntegraGrupo(new UsuarioIntegraGrupo(usuario, gruposCreados.get(0)));
                             }
-                            creadoCorrectamente.set(true);
                         }
                     }
+                    mainHandler.post(() -> {
+                        Toast.makeText(requireContext(), "La familia se ha creado correctamente.", Toast.LENGTH_SHORT).show();
+                        navController.popBackStack();
+                    });
                 } catch (ExcepcionAlbumFamiliar e) {
-                    // Error
+                    String mensaje;
+                    mensaje = e.getMensajeUsuario();
+                    mainHandler.post(() -> Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show());
                 }
             });
-            tarea.start();
-            try {
-                tarea.join(5000);
-            } catch (InterruptedException e) {
-                // Error
-            }
-            if (creadoCorrectamente.get() && usuariosInsertados.get() < usuarios.size()) {
-                Toast.makeText(requireContext(), "Algunos usuarios pueden no haberse añadido correctamente.", Toast.LENGTH_SHORT).show();
-            }
-            else if (gruposDuplicados.get() > 0) {
-                Toast.makeText(requireContext(), "Ya existe una familia con el título elegido.", Toast.LENGTH_SHORT).show();
-            }
-            else if (!creadoCorrectamente.get()) {
-                Toast.makeText(requireContext(), "No se ha podido crear la familia.", Toast.LENGTH_SHORT).show();
-            }
         }
         else {
             Toast.makeText(requireContext(), "El título de la familia es obligatorio.", Toast.LENGTH_SHORT).show();
         }
-        return creadoCorrectamente.get();
     }
 
     public void anyadirUsuario() {
         if (!binding.usuarioFamilia.getText().toString().trim().isEmpty()) {
             AtomicReference<ArrayList<Usuario>> resultado = new AtomicReference<>(new ArrayList<>());
             String usuario = binding.usuarioFamilia.getText().toString().trim();
-            Thread tarea = new Thread(() -> {
+            executorService.execute(() -> {
                 try {
                     LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
                     filtros.put("u.USUARIO", "=" + "'" + usuario + "'");
                     filtros.put("u.FECHA_ELIMINACION", "is null");
                     resultado.set(cliente.leerUsuarios(filtros, null));
-
+                    mainHandler.post(() -> {
+                        if (!resultado.get().isEmpty() && !usuarioYaInsertado(resultado.get().get(0).getCodUsuario()) && !Objects.equals(activity.getIdUsuario(), resultado.get().get(0).getCodUsuario())) {
+                            usuarios.add(resultado.get().get(0));
+                            adapter.notifyItemInserted(usuarios.size());
+                            binding.usuarioFamilia.setText("");
+                            mostrarTextoAlternativo();
+                        } else if (!resultado.get().isEmpty() && Objects.equals(activity.getIdUsuario(), resultado.get().get(0).getCodUsuario())) {
+                            Toast.makeText(requireContext(), "Tu usuario será añadido por defecto.", Toast.LENGTH_SHORT).show();
+                        }
+                        else if (!resultado.get().isEmpty() && usuarioYaInsertado(resultado.get().get(0).getCodUsuario())) {
+                            Toast.makeText(requireContext(), "El usuario ya pertenece a la familia.", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(requireContext(), "El usuario no existe.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } catch (ExcepcionAlbumFamiliar e) {
-                    // Error
+                    mainHandler.post(() -> Toast.makeText(requireContext(), e.getMensajeUsuario(), Toast.LENGTH_SHORT).show());
                 }
             });
-            tarea.start();
-            try {
-                tarea.join(5000);
-            } catch (InterruptedException e) {
-                // Error
-            }
-
-            if (!resultado.get().isEmpty() && !usuarioYaInsertado(resultado.get().get(0).getCodUsuario()) && !Objects.equals(activity.getIdUsuario(), resultado.get().get(0).getCodUsuario())) {
-                usuarios.add(resultado.get().get(0));
-                adapter.notifyItemInserted(usuarios.size());
-                binding.usuarioFamilia.setText("");
-            } else if (!resultado.get().isEmpty() && Objects.equals(activity.getIdUsuario(), resultado.get().get(0).getCodUsuario())) {
-                Toast.makeText(requireContext(), "Tu usuario será añadido por defecto.", Toast.LENGTH_SHORT).show();
-            }
-            else if (!resultado.get().isEmpty() && usuarioYaInsertado(resultado.get().get(0).getCodUsuario())) {
-                Toast.makeText(requireContext(), "El usuario ya pertenece a la familia.", Toast.LENGTH_SHORT).show();
-            }
-            else {
-                Toast.makeText(requireContext(), "El usuario no existe.", Toast.LENGTH_SHORT).show();
-            }
         }
         else {
             Toast.makeText(requireContext(), "Escribe un nombre de usuario.", Toast.LENGTH_SHORT).show();
@@ -198,19 +194,14 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         int id = v.getId();
         if (id == R.id.botonAnyadirUsuario) {
             anyadirUsuario();
-            mostrarTextoAlternativo();
         }
         else if (id == R.id.botonNuevaFamilia) {
-            if (crearGrupo()) {
-                Toast.makeText(requireContext(), "La familia se ha creado correctamente.", Toast.LENGTH_SHORT).show();
-                findNavController(v).popBackStack();
-            }
+            crearGrupo();
         }
         else if (id == R.id.botonAtras) {
             findNavController(v).popBackStack();
         }
     }
-
 
     @Override
     public void onItemClick(Object item, int position) {

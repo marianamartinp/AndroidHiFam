@@ -54,10 +54,11 @@ public class DriveServiceHelper {
             result = driveService.files().list()
                     .setQ(query)
                     .setPageSize(10)
-                    .setFields("nextPageToken, files(id, name)")
+                    .setFields("nextPageToken, files(id, name, webViewLink)")
                     .execute();
             for (File file : result.getFiles()) {
-                Log.e("hey", "Found file: "+file.getName()+file.getId());
+                Log.e("hey", "Found file: "+file.getName()+file.getId() + "link     " + file.getWebViewLink());
+
 //                Uri contentUri = Uri.parse("content://com.mariana.myapplication/files/" + file.getId());
 //                Log.i("uri", contentUri.toString());
                 if (archivoNecesario(file.getName(), idGrupo)) {

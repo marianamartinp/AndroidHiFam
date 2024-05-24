@@ -5,6 +5,8 @@ import static androidx.navigation.Navigation.findNavController;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,10 +16,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Locale;
+import com.bumptech.glide.Glide;
 
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.*;
 
 public class GridAdapter<T> extends BaseAdapter {
@@ -25,7 +34,7 @@ public class GridAdapter<T> extends BaseAdapter {
     private ArrayList<T> objetos;
     private ArrayList<File> imagenes;
     private Boolean vistaIndividual;
-    LayoutInflater inflater;
+    private LayoutInflater inflater;
 
 
     public GridAdapter(Context context, ArrayList<T> objetos, ArrayList<File> imagenes, Boolean vistaIndividual) {
@@ -91,13 +100,13 @@ public class GridAdapter<T> extends BaseAdapter {
         }
 
         if (objetos.get(0) instanceof Grupo) {
-            inflarGrupos(position, imagen, titulo);
+            inflarGrupos(position, context, imagen, titulo);
         }
 
         return convertView;
     }
 
-    public void inflarGrupos(int position, ImageView imagen, TextView titulo) {
+    public void inflarGrupos(int position, Context context, ImageView imagen, TextView titulo) {
         ArrayList<Grupo> grupos = (ArrayList<Grupo>) objetos;
         titulo.setText(grupos.get(position).getTitulo());
         if (!imagenes.isEmpty()) {
@@ -154,5 +163,4 @@ public class GridAdapter<T> extends BaseAdapter {
             }
         }
     }
-
 }

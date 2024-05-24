@@ -60,5 +60,10 @@
     <string name="grupoAlbum">Grupo: tituloGrupo</string>
     <string name="nuevoAlbumTitulo">Escribe aquí un título*</string>
     <string name="nuevoAlbumDescripcion">Escribe aquí una descripción</string>
+    <string name="tipoAlbum">Tipo de Álbum:</string>
+    <string name="warningAlbum">Serás admin de este álbum.</string>
+    <string name="radioButtonAlbumIndividual">Álbum individual</string>
+    <string name="radioButtonAlbumColectivo">Álbum colectivo</string>
+    <string name="tituloGrupoFormularioAlbum">Grupo: %1$s</string>
 
 </resources>

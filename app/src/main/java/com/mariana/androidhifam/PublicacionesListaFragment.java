@@ -12,10 +12,13 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -27,6 +30,9 @@ import com.mariana.androidhifam.databinding.FragmentPublicacionesListaBinding;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
@@ -39,10 +45,12 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     private ArrayList<Publicacion> publicaciones;
     private NavController navController;
     private GridAdapter<Publicacion> adapter;
-    private CCAlbumFamiliar cliente;
-    private  String portadaAlbum;
     private Integer idAlbum, idGrupo;
     private MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private ServicioPublicacion servicioPublicacion;
+    private boolean vistaCreada = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,13 +62,15 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         }
         publicaciones = new ArrayList<>();
         activity = (MainActivity) getActivity();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
+        servicioPublicacion = new ServicioPublicacion();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentPublicacionesListaBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
-        cliente = activity.getCliente();
         return binding.getRoot();
     }
 
@@ -90,7 +100,12 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
             }
         });
 
-        cargarVistaPublicaciones(idAlbum);
+        if (vistaCreada) {
+            actualizarInterfaz();
+        }
+        else {
+            cargarVistaPublicaciones(idAlbum, false);
+        }
     }
 
     @Override
@@ -99,18 +114,30 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         binding = null;
     }
 
-    public void cargarTituloAlbum(Integer idAlbum) throws ExcepcionAlbumFamiliar {
-        binding.tituloAlbum.setText(cliente.leerAlbum(idAlbum).getTitulo());
+    public void cargarTituloAlbum(Integer idAlbum, CountDownLatch latch) {
+        try {
+            String tituloAlbum = servicioPublicacion.cargarTituloAlbum(idAlbum);
+            mainHandler.post(() -> binding.tituloAlbum.setText(tituloAlbum));
+        }
+        catch (ExcepcionAlbumFamiliar e) {
+            mainHandler.post(this::errorAlCargarInterfaz);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
-
-    public void cargarGridPublicaciones(Integer idAlbum) throws ExcepcionAlbumFamiliar {
-        LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-        filtros.put("pea.COD_ALBUM", "="+idAlbum);
-        filtros.put("p.FECHA_ELIMINACION", "is null");
-        LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
-        ordenacion.put("p.titulo", "asc");
-        publicaciones = cliente.leerPublicaciones(filtros,ordenacion);
+    public void cargarPublicaciones(Integer idAlbum, CountDownLatch latch) {
+        try {
+            publicaciones = servicioPublicacion.cargarPublicaciones(idAlbum);
+            mainHandler.post(this::actualizarInterfaz);
+        }
+        catch (ExcepcionAlbumFamiliar e) {
+            mainHandler.post(this::errorAlCargarInterfaz);
+        }
+        finally {
+            latch.countDown();
+        }
     }
 
     public void cargarLista() {
@@ -119,24 +146,45 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         binding.gridView.setAdapter(adapter);
     }
 
-    public void cargarVistaPublicaciones(Integer idAlbum) {
-        Thread tarea = new Thread(() -> {
-            try {
-                cargarTituloAlbum(idAlbum);
-                activity.cargarImagenesDrive();
-                cargarGridPublicaciones(idAlbum);
-            } catch (ExcepcionAlbumFamiliar e) {
-                //throw new RuntimeException(e);
-            }
-        });
-        tarea.start();
-        try {
-            tarea.join(10000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public void actualizarInterfaz() {
         cargarLista();
         mostrarTextoAlternativo();
+    }
+
+    public void cargarImagenesDrive(CountDownLatch latch) {
+        try {
+            activity.cargarImagenesDrive(false);
+        } finally {
+            latch.countDown();
+        }
+    }
+
+    public void cargarVistaPublicaciones(Integer idAlbum, boolean refrescar) {
+        activity.setHabilitarInteraccion(false);
+        Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+        CountDownLatch latch = new CountDownLatch(3);
+        binding.gridView.startAnimation(parpadeo);
+        executorService.execute(() -> cargarTituloAlbum(idAlbum, latch));
+        executorService.execute(() -> cargarPublicaciones(idAlbum, latch));
+        executorService.execute(() -> {
+            cargarImagenesDrive(latch);
+            mainHandler.post(this::actualizarInterfaz);
+        });
+        executorService.execute(() -> {
+            try {
+                latch.await();
+                mainHandler.post(() -> {
+                    binding.gridView.clearAnimation();
+                    if (refrescar) {
+                        Toast.makeText(getContext(), "Se han actualizado las publicaciones.", Toast.LENGTH_SHORT).show();
+                    }
+                    activity.setHabilitarInteraccion(true);
+                    vistaCreada = true;
+                });
+            } catch (InterruptedException e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
     }
 
     public void menuPopUp() {
@@ -154,27 +202,29 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
 
     @Override
     public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonVistaGrid) {
-            findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToPublicacionesFragment(idAlbum, idGrupo));
-        } else if (id == R.id.botonNuevaPublicacion) {
-            findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToNuevaPublicacionFragment(idAlbum, idGrupo));
-        }
-        else if (id == R.id.botonOpciones) {
-            menuPopUp();
+        if (activity.getHabilitarInteraccion()) {
+            int id = v.getId();
+            if (id == R.id.botonVistaGrid) {
+                findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToPublicacionesFragment(idAlbum, idGrupo));
+            } else if (id == R.id.botonNuevaPublicacion) {
+                findNavController(v).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToNuevaPublicacionFragment(idAlbum, idGrupo));
+            } else if (id == R.id.botonOpciones) {
+                menuPopUp();
+            }
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        findNavController(view).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToPublicacionFragment((int)id));
+        if (activity.getHabilitarInteraccion()) {
+            findNavController(view).navigate(PublicacionesListaFragmentDirections.actionPublicacionesListaFragmentToPublicacionFragment((int) id));
+        }
     }
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaPublicaciones(idAlbum);
-        Toast.makeText(getContext(), "Se han actualizado las publicaciones.", Toast.LENGTH_SHORT).show();
+        cargarVistaPublicaciones(idAlbum, true);
     }
 
     public void mostrarTextoAlternativo() {
@@ -186,5 +236,9 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         else {
             binding.textoAlternativo.setVisibility(View.INVISIBLE);
         }
+    }
+
+    public void errorAlCargarInterfaz() {
+        Toast.makeText(getContext(), "Error al cargar las publicaciones.", Toast.LENGTH_SHORT).show();
     }
 }
