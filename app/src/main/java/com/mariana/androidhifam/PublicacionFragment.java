@@ -153,7 +153,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
+                .inflate(R.menu.menu_context_grupos, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();

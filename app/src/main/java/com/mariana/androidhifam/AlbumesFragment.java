@@ -14,6 +14,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,7 +43,7 @@ import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Album;
 
-public class AlbumesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, MenuProvider, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
+public class AlbumesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, MenuProvider, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
     private AlbumesFragmentArgs albumesFragmentArgs;
     private @NonNull FragmentAlbumesBinding binding;
     private ArrayList<Album> albumes;
@@ -74,7 +75,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentAlbumesBinding.inflate(inflater, container, false);
         cliente = activity.getCliente();
-        navController = navController = NavHostFragment.findNavController(this);
+        navController = NavHostFragment.findNavController(this);
         return binding.getRoot();
     }
 
@@ -105,7 +106,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         });
 
         if (vistaCreada) {
-            actualizarInterfaz();
+            resumirVistaAlbumes(idGrupo);
         }
         else {
             cargarVistaAlbumes(idGrupo, false);
@@ -124,14 +125,12 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     @Override
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.menu_grupos_admin, menu);
+        menuInflater.inflate(R.menu.menu_context_albumes, menu);
     }
 
     @Override
     public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-        if (menuItem.getItemId() == R.id.eliminarGrupo) {
-            return true;
-        }
+        // Menú contextual álbumes
         return false;
     }
 
@@ -140,7 +139,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         if (activity.getHabilitarInteraccion()) {
             super.onCreateContextMenu(menu, v, menuInfo);
             MenuInflater inflater = getActivity().getMenuInflater();
-            inflater.inflate(R.menu.menu_grupos_admin, menu);
+            inflater.inflate(R.menu.menu_context_albumes, menu);
         }
     }
 
@@ -167,7 +166,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
             albumes = cliente.leerAlbumes(filtros,ordenacion);
             mainHandler.post(this::actualizarInterfaz);
         }
-        catch(ExcepcionAlbumFamiliar e) {
+        catch(Exception e) {
             mainHandler.post(this::errorAlCargarInterfaz);
         }
         finally {
@@ -222,14 +221,41 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         });
     }
 
+    public void resumirVistaAlbumes(Integer idGrupo) {
+        activity.setHabilitarInteraccion(false);
+        Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+        CountDownLatch latch = new CountDownLatch(1);
+        binding.gridView.startAnimation(parpadeo);
+        executorService.execute(() -> cargarAlbumes(idGrupo, latch));
+        executorService.execute(() -> {
+            try {
+                latch.await();
+                mainHandler.post(() -> {
+                    binding.gridView.clearAnimation();
+                    activity.setHabilitarInteraccion(true);
+                    vistaCreada = true;
+                });
+            } catch (InterruptedException e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
+    }
+
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
+                .inflate(R.menu.menu_opciones_grupos, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
-                Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                return true;
+                int idMenuItem = item.getItemId();
+
+                if(idMenuItem == R.id.eliminarGrupo) {
+                    modalEliminarGrupo(idGrupo);
+                    return true;
+                }
+                else {
+                    return true;
+                }
             }
         });
         popup.show();
@@ -244,7 +270,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
             } else if (id == R.id.botonOpciones) {
                 menuPopUp();
             } else if (id == R.id.botonUsuarios) {
-                Toast.makeText(requireContext(), "Usuarios del album", Toast.LENGTH_SHORT).show();
+                navController.navigate(AlbumesFragmentDirections.actionAlbumesFragmentToSolicitudesEntradaGrupoFragment(idGrupo));
             }
         }
     }
@@ -259,7 +285,35 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaAlbumes(idGrupo, true);
+        if (activity.getHabilitarInteraccion()) {
+            cargarVistaAlbumes(idGrupo, true);
+        }
+    }
+
+    @Override
+    public void onPositiveClick(Integer position, Integer id) {
+        if (activity.getHabilitarInteraccion()) {
+            eliminarGrupo(id);
+        }
+    }
+
+    public void eliminarGrupo(int idGrupo) {
+        executorService.execute(() -> {
+            try {
+                cliente.eliminarGrupo(idGrupo);
+                mainHandler.post(() -> {
+                    navController.popBackStack();
+                    Toast.makeText(requireContext(), "Grupo eliminado.", Toast.LENGTH_SHORT).show();
+                });
+            } catch (ExcepcionAlbumFamiliar e) {
+                mainHandler.post(this::errorAlCargarInterfaz);
+            }
+        });
+    }
+
+    public void modalEliminarGrupo(int id) {
+        ModalFragment modal = new ModalFragment(null, (int) id, this, "¿Desea eliminar este grupo?", getString(R.string.btnEliminar), getString(R.string.btnCancelar));
+        modal.show(getActivity().getSupportFragmentManager(), "modalEliminarGrupo");
     }
 
     public void mostrarTextoAlternativo() {

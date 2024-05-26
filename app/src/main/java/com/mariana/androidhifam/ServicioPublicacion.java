@@ -26,5 +26,9 @@ public class ServicioPublicacion {
         return cliente.leerPublicaciones(filtros,ordenacion);
     }
 
+    public int insertarPublicacion(Publicacion publicacion) throws ExcepcionAlbumFamiliar {
+        return cliente.insertarPublicacion(publicacion);
+    }
+
 
 }

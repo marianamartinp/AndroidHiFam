@@ -29,12 +29,10 @@ import com.mariana.androidhifam.databinding.FragmentPublicacionesListaBinding;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Publicacion;
 
@@ -190,7 +188,7 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
+                .inflate(R.menu.menu_context_grupos, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
@@ -224,7 +222,9 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaPublicaciones(idAlbum, true);
+        if (activity.getHabilitarInteraccion()) {
+            cargarVistaPublicaciones(idAlbum, true);
+        }
     }
 
     public void mostrarTextoAlternativo() {

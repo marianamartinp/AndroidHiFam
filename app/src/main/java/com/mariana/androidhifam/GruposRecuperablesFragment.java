@@ -116,13 +116,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         int itemId = (int) binding.gridView.getAdapter().getItemId(position);
         int idMenuItem = item.getItemId();
 
-        if (idMenuItem == R.id.verDetallesGrupo) {
-            return true;
-        }
-        else if (idMenuItem == R.id.verIntegrantesGrupo) {
-            return true;
-        }
-        else if (idMenuItem == R.id.recuperarGrupo) {
+        if (idMenuItem == R.id.recuperarGrupo) {
             modalRecuperarGrupo(position, itemId);
             return true;
         }
@@ -154,24 +148,13 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     }
 
     @Override
-    public void onPositiveClick(int position, int id) {
+    public void onPositiveClick(Integer position, Integer id) {
         if (activity.getHabilitarInteraccion()) {
-            if (recuperarGrupo(id) > 0) {
-                Toast.makeText(getContext(), "Se ha restaurado el grupo.", Toast.LENGTH_SHORT).show();
-                grupos.remove(position);
-                adapter.notifyDataSetChanged();
-                mostrarTextoAlternativo();
-            } else {
-                Toast.makeText(getContext(), "Se ha producido un error.", Toast.LENGTH_SHORT).show();
-            }
+            recuperarGrupo(position, id);
         }
     }
 
-    @Override
-    public void onNegativeClick(int position, int id) {
-    }
-
-    public void cargarGrupos(Integer idUsuario, CountDownLatch latch) {
+    public void cargarGrupos(Integer idUsuario) {
         try {
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
             filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + idUsuario);
@@ -183,9 +166,6 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         }
         catch (ExcepcionAlbumFamiliar e) {
             throw new RuntimeException(e);
-        }
-        finally {
-            latch.countDown();
         }
     }
 
@@ -200,38 +180,18 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         mostrarTextoAlternativo();
     }
 
-    public void cargarImagenesDrive(CountDownLatch latch) {
-        try {
-            activity.cargarImagenesDrive(true);
-        } finally {
-            latch.countDown();
-        }
-    }
-
     public void cargarVistaGrupos(Integer idUsuario, boolean refrescar) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
-        CountDownLatch latch = new CountDownLatch(2);
         binding.gridView.startAnimation(parpadeo);
-        executorService.execute(() -> cargarGrupos(idUsuario, latch));
         executorService.execute(() -> {
-            cargarImagenesDrive(latch);
-            mainHandler.post(this::actualizarInterfaz);
-        });
-        executorService.execute(() -> {
-            try {
-                latch.await();
-                mainHandler.post(() -> {
-                    binding.gridView.clearAnimation();
-                    if (refrescar) {
-                        Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
-                    }
-                    activity.setHabilitarInteraccion(true);
-                    vistaCreada = true;
-                });
-            } catch (InterruptedException e) {
-                mainHandler.post(this::errorAlCargarInterfaz);
+            cargarGrupos(idUsuario);
+            binding.gridView.clearAnimation();
+            if (refrescar) {
+                Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
             }
+            activity.setHabilitarInteraccion(true);
+            vistaCreada = true;
         });
     }
 
@@ -240,22 +200,20 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         modal.show(getActivity().getSupportFragmentManager(), "modalRecuperarGrupo");
     }
 
-    public int recuperarGrupo(int idGrupo) {
-        AtomicInteger resultado = new AtomicInteger();
-        Thread tarea = new Thread(() -> {
+    public void recuperarGrupo(int position, int idGrupo) {
+        executorService.execute(() -> {
             try {
-                resultado.set(cliente.restaurarGrupo(idGrupo));
+                cliente.restaurarGrupo(idGrupo);
+                mainHandler.post(() -> {
+                    grupos.remove(position);
+                    adapter.notifyDataSetChanged();
+                    mostrarTextoAlternativo();
+                    Toast.makeText(requireContext(), "Grupo recuperado.", Toast.LENGTH_SHORT).show();
+                });
             } catch (ExcepcionAlbumFamiliar e) {
-                // Error
+                mainHandler.post(this::errorAlCargarInterfaz);
             }
         });
-        tarea.start();
-        try {
-            tarea.join(5000);
-        } catch (InterruptedException e) {
-            // Error
-        }
-        return resultado.get();
     }
 
     public void mostrarTextoAlternativo() {

@@ -20,6 +20,7 @@
     <string name="ingresarEnGrupo">Ingresar en grupo existente</string>
 
     <string name="nuevaPublicacionAlbum">Álbum: Titulo álbum</string>
+    <string name="tituloAlbumFormularioPublicacion">Álbum: %1$s</string>
     <string name="nuevaPublicacionTitulo">Escribe aquí un título</string>
     <string name="nuevaPublicacionTexto">Añade aquí un poco de texto</string>
 
@@ -48,6 +49,7 @@
     <string name="btnCancelar">Cancelar</string>
     <string name="btnConfirmar">Confirmar</string>
     <string name="btnAceptar">Aceptar</string>
+    <string name="btnEliminar">Eliminar</string>
 
 
     <!-- Items menús contextuales -->
@@ -55,6 +57,8 @@
     <string name="verIntegrantes">Integrantes del Grupo</string>
     <string name="eliminarGrupo">Eliminar Grupo</string>
     <string name="recuperarGrupo">Recuperar grupo</string>
+
+    <string name="verDetallesAlbum">Detalles del Álbum</string>
 
     <!-- Formulario nuevo álbum -->
     <string name="grupoAlbum">Grupo: tituloGrupo</string>
@@ -65,5 +69,10 @@
     <string name="radioButtonAlbumIndividual">Álbum individual</string>
     <string name="radioButtonAlbumColectivo">Álbum colectivo</string>
     <string name="tituloGrupoFormularioAlbum">Grupo: %1$s</string>
+
+    <!-- Modal solicitudes de entrada a grupo -->
+    <string name="solicitudesEntradaInfo">Aquí se mostrarán las solicitudes de entrada a tu familia.</string>
+    <string name="solicitudesEntradaGrupo">Solicitudes de entrada</string>
+    <string name="headerUsuariosSolicitudes">Usuarios:</string>
 
 </resources>

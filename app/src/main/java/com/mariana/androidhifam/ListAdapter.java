@@ -10,9 +10,11 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 import pojosalbumfamiliar.Comentario;
+import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
 
@@ -25,7 +27,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
 
 
     public interface OnItemClickListener {
-        void onItemClick(Object item, int position);
+        void onItemClick(Object item, int position, int idButton);
     }
 
     // RecyclerView recyclerView;
@@ -46,11 +48,13 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
 
         switch(item) {
             case ItemsListAdapter.ITEM_COMENTARIO:
-                itemLista= inflater.inflate(R.layout.comentario_item, parent, false);
+                itemLista = inflater.inflate(R.layout.comentario_item, parent, false);
                 break;
             case ItemsListAdapter.ITEM_MIEMBRO_GRUPO:
-                itemLista= inflater.inflate(R.layout.item_anyadir_miembro_grupo, parent, false);
+                itemLista = inflater.inflate(R.layout.item_anyadir_miembro_grupo, parent, false);
                 break;
+            case ItemsListAdapter.ITEM_SOLICITUD_GRUPO:
+                itemLista = inflater.inflate(R.layout.item_solicitud_grupo, parent, false);
         }
         return new ViewHolder(itemLista);
     }
@@ -67,8 +71,8 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView usuario, contenido;
-        public ImageView iconoEquis;
+        public TextView usuario, contenido, fechaSolicitud;
+        public ImageView iconoEquis, iconoTick;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -80,6 +84,12 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                 case ItemsListAdapter.ITEM_MIEMBRO_GRUPO:
                     this.usuario = itemView.findViewById(R.id.usuarioMiembro);
                     this.iconoEquis = itemView.findViewById(R.id.iconoEquis);
+                    break;
+                case ItemsListAdapter.ITEM_SOLICITUD_GRUPO:
+                    this.usuario = itemView.findViewById(R.id.usuarioSolicitante);
+                    this.fechaSolicitud = itemView.findViewById(R.id.fechaSolicitud);
+                    this.iconoEquis = itemView.findViewById(R.id.iconoEquis);
+                    this.iconoTick = itemView.findViewById(R.id.iconoTick);
                     break;
             }
         }
@@ -97,7 +107,25 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                     this.usuario.setText("@"+usuario.getUsuario());
                     this.iconoEquis.setOnClickListener(new View.OnClickListener() {
                         @Override public void onClick(View v) {
-                            listener.onItemClick(objeto, position);
+                            listener.onItemClick(objeto, position, R.id.iconoEquis);
+                        }
+                    });
+                    break;
+                case ItemsListAdapter.ITEM_SOLICITUD_GRUPO:
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    sdf.setLenient(false);
+                    SolicitudEntradaGrupo solicitud = (SolicitudEntradaGrupo) objeto;
+                    this.usuario.setText("@"+solicitud.getUsuario().getUsuario());
+                    this.fechaSolicitud.setText(sdf.format(solicitud.getFechaSolicitud()));
+
+                    this.iconoEquis.setOnClickListener(new View.OnClickListener() {
+                        @Override public void onClick(View v) {
+                            listener.onItemClick(objeto, position, R.id.iconoEquis);
+                        }
+                    });
+                    this.iconoTick.setOnClickListener(new View.OnClickListener() {
+                        @Override public void onClick(View v) {
+                            listener.onItemClick(objeto, position, R.id.iconoTick);
                         }
                     });
                     break;

@@ -40,9 +40,9 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
     private CustomModalInterface customModalInterface;
     private String textoModal, botonPositivo, botonNegativo;
 
-    private int position, id;
+    private Integer position, id;
 
-    public ModalFragment(int position, int id, CustomModalInterface customModalInterface, String textoModal, String botonPositivo, String botonNegativo) {
+    public ModalFragment(Integer position, Integer id, CustomModalInterface customModalInterface, String textoModal, String botonPositivo, String botonNegativo) {
         this.position = position;
         this.id = id;
         this.textoModal = textoModal;
@@ -94,8 +94,7 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
 
 
     public interface CustomModalInterface {
-        void onPositiveClick(int position, int id);
-        void onNegativeClick(int position, int id);
+        void onPositiveClick(Integer position, Integer id);
     }
 
     public void anyadirBotonNegativo(LinearLayout.LayoutParams params) {
@@ -106,9 +105,6 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
         negativeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (null != customModalInterface) {
-                    customModalInterface.onNegativeClick(position, id);
-                }
                 dismiss();
             }
         });

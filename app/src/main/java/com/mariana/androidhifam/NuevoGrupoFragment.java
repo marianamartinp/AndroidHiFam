@@ -204,7 +204,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
     }
 
     @Override
-    public void onItemClick(Object item, int position) {
+    public void onItemClick(Object item, int position, int idButton) {
         usuarios.remove(position);
         adapter.notifyItemRemoved(position);
         adapter.notifyItemRangeChanged(position, usuarios.size() - position);

@@ -16,8 +16,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -90,6 +88,8 @@ public class GridAdapter<T> extends BaseAdapter {
 
         TextView titulo = convertView.findViewById(R.id.titulo);
         ImageView imagen = convertView.findViewById(R.id.imagen);
+
+        imagen.setImageResource(R.drawable.noimagen);
 
         if (objetos.get(0) instanceof Album) {
             inflarAlbumes(position, imagen, titulo);

@@ -27,12 +27,10 @@ import com.mariana.androidhifam.databinding.FragmentPublicacionesBinding;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 
@@ -115,7 +113,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
             mainHandler.post(() -> binding.tituloAlbum.setText(tituloAlbum));
         }
         catch (ExcepcionAlbumFamiliar e) {
-            mainHandler.post(this::errorAlCargarInterfaz);
+            mainHandler.post(() -> Toast.makeText(getContext(), "Error al el título del álbum.", Toast.LENGTH_SHORT).show());
         }
         finally {
             latch.countDown();
@@ -185,7 +183,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater()
-                .inflate(R.menu.menu_grupos_admin, popup.getMenu());
+                .inflate(R.menu.menu_context_grupos, popup.getMenu());
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
@@ -219,7 +217,9 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
     public void onSwipeToRefresh() {
-        cargarVistaPublicaciones(idAlbum, true);
+        if (activity.getHabilitarInteraccion()) {
+            cargarVistaPublicaciones(idAlbum, true);
+        }
     }
 
     public void mostrarTextoAlternativo() {

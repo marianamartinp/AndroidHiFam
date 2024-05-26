@@ -90,6 +90,9 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
+        <action
+            android:id="@+id/action_albumesFragment_to_solicitudesEntradaGrupoFragment"
+            app:destination="@id/solicitudesEntradaGrupoFragment" />
     </fragment>
     <fragment
         android:id="@+id/publicacionesFragment"
@@ -241,4 +244,13 @@
             android:name="idGrupo"
             app:argType="integer" />
     </fragment>
+    <dialog
+        android:id="@+id/solicitudesEntradaGrupoFragment"
+        android:name="com.mariana.androidhifam.SolicitudesEntradaGrupoFragment"
+        android:label="fragment_solicitudes_entrada_grupo"
+        tools:layout="@layout/fragment_solicitudes_entrada_grupo" >
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
+    </dialog>
 </navigation>
