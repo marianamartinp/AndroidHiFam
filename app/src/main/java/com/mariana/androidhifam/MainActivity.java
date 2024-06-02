@@ -1,8 +1,14 @@
 package com.mariana.androidhifam;
 
+import com.google.android.material.navigation.NavigationView;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -23,6 +29,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -42,6 +49,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,12 +59,14 @@ import driveapi.DriveServiceHelper;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 
-public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, DriveServiceHelper.DriveServiceInitialization {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, DriveServiceHelper.DriveServiceInitialization, NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String PREFS_NAME = "UserPrefs";
+    private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
+    private static final String KEY_USER_TOKEN = "userToken";
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
-    private Integer idUsuario;
     private SwipeToRefreshLayout refreshLayout;
     private DriveServiceHelper driveServiceHelper;
     private CCAlbumFamiliar cliente;
@@ -66,11 +76,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
 
     public interface SwipeToRefreshLayout {
-        void onSwipeToRefresh();
+        void onSwipeToRefresh(SwipeRefreshLayout refreshLayout);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setLocale(this,"es");
         super.onCreate(savedInstanceState);
         //EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -79,19 +90,22 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         setContentView(root);
 
         if (internetDisponible()) {
-            // Configuración del binding
-            cliente = new CCAlbumFamiliar();
-            imagenes = new ArrayList<>();
+            // Setup del NavHostFragment
             NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.navHostFragment);
             navController = navHostFragment.getNavController();
-            setSupportActionBar(binding.toolbar);
+
+            cliente = new CCAlbumFamiliar();
+            imagenes = new ArrayList<>();
             View customView = LayoutInflater.from(this).inflate(R.layout.fragment_menu, binding.toolbar, false);
             binding.toolbar.addView(customView);
+            setSupportActionBar(binding.toolbar);
             binding.toolbar.setTitle(null);
+            binding.toolbar.getOverflowIcon().setTint(Color.WHITE);
 
             //Configuracion appBar
             appBarConfiguration = new AppBarConfiguration.Builder(
                     R.id.loginFragment,
+                    R.id.registroFragment,
                     R.id.gruposFragment
             ).setOpenableLayout(binding.drawerLayout).build();
 
@@ -101,14 +115,18 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
                 @Override
                 public void onDestinationChanged(@NonNull NavController navController, @NonNull NavDestination navDestination, @Nullable Bundle bundle) {
-                    if (navDestination.getId() == R.id.loginFragment || navDestination.getId() == R.id.registroFragment) {
-                        mostrarToolbar(false);
+                    if (navDestination.getId() == R.id.loginFragment) {
+                        mostrarToolbar(false, true);
+                    }
+                    else if (navDestination.getId() == R.id.registroFragment) {
+                        mostrarToolbar(false, false);
                     }
                 }
             });
 
             // Drawer Layout
             NavigationUI.setupWithNavController(binding.navView, navController);
+            binding.navView.setNavigationItemSelectedListener(this);
 
             // Botón de navegción atrás personalizado
             getOnBackPressedDispatcher().addCallback(binding.getLifecycleOwner(), callback);
@@ -118,6 +136,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
             // Inicializar la api de Google Drive
             setDriveService();
+
+            // Setup SharedPreferences para el login.
+            SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+            boolean isLoggedIn = sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false);
+
+            if (isLoggedIn) {
+                navController.navigate(R.id.gruposFragment);
+            } else {
+                navController.navigate(R.id.loginFragment);
+            }
         }
         else {
             Toast.makeText(getApplicationContext(), "Conexión a internet no disponible.", Toast.LENGTH_SHORT).show();
@@ -138,9 +166,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     @Override
     public void onRefresh() {
         if (null != refreshLayout) {
-            refreshLayout.onSwipeToRefresh();
+            refreshLayout.onSwipeToRefresh(binding.refreshLayout);
         }
-        binding.refreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -168,31 +195,81 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return true;
     }
 
-    public void mostrarToolbar(Boolean mostrar) {
+
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        binding.drawerLayout.closeDrawer(GravityCompat.START);
+        int id = item.getItemId();
+        if (id == R.id.cerrarSesionItem) {
+            cerrarSesion();
+        }
+        else if (id == R.id.usuarioItem) {
+            navController.navigate(R.id.usuarioFragment);
+        }
+        else if (id == R.id.gruposItem) {
+            navController.navigate(R.id.gruposFragment);
+        }
+        return true;
+    }
+
+    public void mostrarToolbar(boolean mostrar, boolean animar) {
         if (mostrar) {
-            Animation animacionEntrada = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
-            binding.toolbar.startAnimation(animacionEntrada);
-            binding.toolbar.setVisibility(View.VISIBLE);
+            if (animar) {
+                Animation animacionEntrada = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
+                View customView = LayoutInflater.from(this).inflate(R.layout.fragment_menu, binding.toolbar, false);
+                animacionEntrada.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        findViewById(R.id.toolbarContenido).setVisibility(View.VISIBLE);
+                        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                binding.toolbar.startAnimation(animacionEntrada);
+            }
+            else {
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                findViewById(R.id.toolbarContenido).setVisibility(View.VISIBLE);
+            }
         }
         else {
-            Animation animacionSalida = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
-            animacionSalida.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
+            if (animar) {
+                Animation animacionSalida = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+                animacionSalida.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                        findViewById(R.id.toolbarContenido).setVisibility(View.INVISIBLE);
+                        binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                        binding.toolbar.setNavigationIcon(null);
+                    }
 
-                }
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+//                    binding.toolbar.setVisibility(View.GONE);
+//                    binding.toolbar.removeAllViews();
+                    }
 
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    binding.toolbar.setVisibility(View.GONE);
-                }
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
 
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-
-                }
-            });
-            binding.toolbar.startAnimation(animacionSalida);
+                    }
+                });
+                binding.toolbar.startAnimation(animacionSalida);
+            }
+            else {
+                findViewById(R.id.toolbarContenido).setVisibility(View.INVISIBLE);
+                binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                binding.toolbar.setNavigationIcon(null);
+            }
         }
     }
 
@@ -212,13 +289,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     };
 
-    public void setIdUsuario(Integer idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
-    public Integer getIdUsuario() {
-        return idUsuario;
-    }
     public CCAlbumFamiliar getCliente() {
         return cliente;
     }
@@ -264,8 +334,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         try {
             if (cargarGrupos) {
                 LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-                String queryGruposActivos = "(uig.COD_USUARIO = " + idUsuario + " and g.FECHA_ELIMINACION is null)";
-                String queryGruposEliminados = " or (g.COD_USUARIO_ADMIN_GRUPO = " + idUsuario + " and g.FECHA_ELIMINACION is not null)";
+                String queryGruposActivos = "(uig.COD_USUARIO = " + getToken() + " and g.FECHA_ELIMINACION is null)";
+                String queryGruposEliminados = " or (g.COD_USUARIO_ADMIN_GRUPO = " + getToken() + " and g.FECHA_ELIMINACION is not null)";
                 filtros.put(queryGruposActivos, queryGruposEliminados);
                 LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
                 ordenacion.put("g.titulo", "asc");
@@ -333,5 +403,28 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             return networkInfo != null && networkInfo.isConnected();
         }
         return false;
+    }
+
+    public static void setLocale(Activity activity, String languageCode) {
+        Locale locale = new Locale(languageCode);
+        Locale.setDefault(locale);
+        Resources resources = activity.getResources();
+        Configuration config = resources.getConfiguration();
+        config.setLocale(locale);
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
+    }
+
+    public String getToken() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return sharedPreferences.getString(KEY_USER_TOKEN, null);
+    }
+
+    public void cerrarSesion() {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.apply();
+        // Navigate to the LoginFragment
+        navController.navigate(GruposFragmentDirections.actionGruposFragmentToLoginFragment());
     }
 }

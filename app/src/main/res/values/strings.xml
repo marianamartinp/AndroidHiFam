@@ -15,9 +15,10 @@
     <string name="tituloGrupo">Titulo de la familia</string>
     <string name="tituloAlbum">Titulo del album</string>
 
-    <string name="miInfo">Mi informacion</string>
+    <string name="miInfo">Mi Informacion</string>
     <string name="crearGrupo">Crear nuevo grupo</string>
     <string name="ingresarEnGrupo">Ingresar en grupo existente</string>
+    <string name="cerrarSesion">Cerrar Sesión</string>
 
     <string name="nuevaPublicacionAlbum">Álbum: Titulo álbum</string>
     <string name="tituloAlbumFormularioPublicacion">Álbum: %1$s</string>
@@ -56,6 +57,7 @@
     <string name="verDetallesGrupo">Detalles del Grupo</string>
     <string name="verIntegrantes">Integrantes del Grupo</string>
     <string name="eliminarGrupo">Eliminar Grupo</string>
+    <string name="eliminarAlbum">Eliminar Álbum</string>
     <string name="recuperarGrupo">Recuperar grupo</string>
 
     <string name="verDetallesAlbum">Detalles del Álbum</string>
@@ -74,5 +76,42 @@
     <string name="solicitudesEntradaInfo">Aquí se mostrarán las solicitudes de entrada a tu familia.</string>
     <string name="solicitudesEntradaGrupo">Solicitudes de entrada</string>
     <string name="headerUsuariosSolicitudes">Usuarios:</string>
+
+    <!-- Login fragment -->
+    <string name="login">Inicio de Sesión</string>
+    <string name="usuario">Usuario</string>
+    <string name="contrasenya">Contraseña</string>
+    <string name="eslogan">Where love knows no distance</string>
+    <string name="placeholderUsuarioLogin">Usuario o correo electrónico</string>
+    <string name="placeholderContrasenyaLogin">Contraseña</string>
+    <string name="linkRegistro">¿No tienes cuenta? Registrate aquí.</string>
+    <string name="btnIniciarSesion">Iniciar Sesión</string>
+
+    <!-- Registro fragment -->
+    <string name="registro">Registro</string>
+    <string name="nombre">Nombre completo*</string>
+    <string name="usuarioRegistro">Usuario*</string>
+    <string name="contrasenyaRegistro">Contraseña*</string>
+    <string name="correoElectronico">Correo electrónico*</string>
+    <string name="nombrePlaceholder">Tu nombre</string>
+    <string name="contrasenyaPlaceholder">Tu contraseña</string>
+    <string name="usuarioRegistroPlaceholder">Tu nombre de usuario</string>
+    <string name="correoElectronicoPlaceholder">Tu correo electrónico</string>
+    <string name="telefono">Teléfono*</string>
+    <string name="telefonoPlaceholder">Tu teléfono</string>
+    <string name="fechaNacimiento">Fecha de nacimiento*</string>
+    <string name="fechaNacimientoPlaceholder">Tu fecha de nacimiento</string>
+    <string name="linkInicioSesion">¿Ya tienes cuenta? Inicia sesión.</string>
+    <string name="btnSiguiente">Siguiente</string>
+    <string name="btnRegistro">Registrarme</string>
+    <string name="prefijoTelefonoPlaceholder">Prefijo</string>
+    <string name="prefijoPorDefecto">34</string>
+    <string name="requisitosContrasenya">
+        Longitud mínima de 8 caracteres.\n
+        Al menos una letra mayúscula.\n
+        Al menos una letra minúscula.\n
+        Al menos un dígito.\n
+        Al menos un carácter especial (@, #, $, %, etc.).
+    </string>
 
 </resources>

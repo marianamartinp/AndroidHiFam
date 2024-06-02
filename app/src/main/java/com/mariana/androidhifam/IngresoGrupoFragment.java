@@ -45,6 +45,7 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
+    private Integer tokenUsuario;
 
 
     @Override
@@ -60,10 +61,10 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding = FragmentIngresoGrupoBinding.inflate(getLayoutInflater());
         cliente = activity.getCliente();
+        tokenUsuario = Integer.getInteger(activity.getToken());
         navController = NavHostFragment.findNavController(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());
-        binding.editableCodigo.setFilters(new InputFilter[] {new FiltroNumerico()});
         binding.botonEnviarSolicitud.setOnClickListener(this);
         return builder.create();
     }
@@ -91,7 +92,7 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
         executorService.execute(() -> {
             try {
                 Usuario usuario = new Usuario();
-                usuario.setCodUsuario(activity.getIdUsuario());
+                usuario.setCodUsuario(tokenUsuario);
                 Grupo grupo = new Grupo();
                 grupo.setCodGrupo(Integer.parseInt(binding.editableCodigo.getText().toString().trim()));
                 cliente.insertarSolicitudEntradaGrupo(new SolicitudEntradaGrupo(grupo,usuario,null));

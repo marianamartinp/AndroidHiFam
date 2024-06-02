@@ -2,10 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/usuarioFragment"
+        android:id="@+id/usuarioItem"
         android:title="@string/miInfo"/>
     <item
-        android:id="@+id/gruposFragment"
+        android:id="@+id/gruposItem"
         android:title="@string/tituloGrupos"/>
+    <item
+        android:id="@+id/cerrarSesionItem"
+        android:title="@string/cerrarSesion"/>
 
 </menu>

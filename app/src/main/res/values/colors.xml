@@ -7,6 +7,7 @@
     <color name="orange">#bd743a</color>
     <color name="darkGrey">#464545</color>
     <color name="lightGrey">#bab7b5</color>
+    <color name="lightGreyDarker">#B1ADAB</color>
     <color name="lighterGrey">#d9d9d9</color>
     <color name="mediumGrey">#737373</color>
 </resources>

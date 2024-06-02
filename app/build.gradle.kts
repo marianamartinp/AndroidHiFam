@@ -74,6 +74,11 @@ dependencies {
         exclude(group= "org.apache.httpcomponents")
     }
 
+    // Hashear contraseña
+    implementation("org.mindrot:jbcrypt:0.4")
+
+    // Validar números de teléfono
+    implementation("com.googlecode.libphonenumber:libphonenumber:8.13.12")
 }
 
 configurations {

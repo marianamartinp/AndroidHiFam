@@ -34,7 +34,7 @@ public class CCAlbumFamiliar {
     
     public void conectar() throws ExcepcionAlbumFamiliar{
         try {
-//            String equipoServidor = "172.16.213.69";
+//            String equipoServidor = "172.16.2.190";
             String equipoServidor = "192.168.1.213";
 //            String equipoServidor = "172.16.5.34";
             int puertoServidor = 30500;

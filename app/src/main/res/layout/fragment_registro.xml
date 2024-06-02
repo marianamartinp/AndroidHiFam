@@ -1,15 +1,104 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.mariana.androidhifam.RegistroFragment">
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rootViewRegistro"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <!-- TODO: Update blank fragment layout -->
+        android:layout_height="match_parent"
+        android:paddingTop="10dp"
+        android:paddingBottom="40dp"
+        android:paddingStart="45dp"
+        android:paddingEnd="45dp">
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:src="@drawable/logohifam"
+            app:layout_constraintDimensionRatio="H,12:4"
+            android:layout_marginBottom="-10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/eslogan"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
         <TextView
+            android:id="@+id/eslogan"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="registro" />
-    </FrameLayout>
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="20sp"
+            android:text="@string/eslogan"
+            android:gravity="center"
+            android:layout_marginTop="-15dp"
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintTop_toBottomOf="@id/logo"/>
+
+        <ImageView
+            android:id="@+id/botonAtras"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:src="@drawable/chevronleftmediumgrey"
+            android:layout_marginEnd="15dp"
+            android:visibility="invisible"
+            app:layout_constraintTop_toTopOf="@id/registro"
+            app:layout_constraintBottom_toBottomOf="@id/registro"
+            app:layout_constraintEnd_toStartOf="@id/registro"
+            app:layout_constraintDimensionRatio="W,1:1"/>
+
+
+        <TextView
+            android:id="@+id/registro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="25sp"
+            android:text="@string/registro"
+            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:textColor="@color/orange"
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/eslogan"
+            app:layout_constraintBottom_toTopOf="@id/viewPager"/>
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="10dp"
+            app:userInputEnabled="@{false}"
+            app:layout_constraintTop_toBottomOf="@id/registro"
+            app:layout_constraintBottom_toBottomOf="@id/linkIniciarSesion"/>
+
+        <TextView
+            android:id="@+id/linkIniciarSesion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="14sp"
+            android:text="@string/linkInicioSesion"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/mediumGrey"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/viewPager"/>
+
+        <Button
+            android:id="@+id/btnSiguienteLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btnSiguiente"
+            android:textColor="@color/eggWhite"
+            android:layout_marginTop="20dp"
+            android:textSize="15sp"
+            app:layout_constraintTop_toBottomOf="@id/linkIniciarSesion"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

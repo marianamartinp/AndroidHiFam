@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
+import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Publicacion;
 
@@ -13,8 +14,8 @@ public class ServicioPublicacion {
     public ServicioPublicacion() {
         cliente = new CCAlbumFamiliar();
     }
-    public String cargarTituloAlbum(Integer idAlbum) throws ExcepcionAlbumFamiliar {
-        return cliente.leerAlbum(idAlbum).getTitulo();
+    public Album cargarAlbum(Integer idAlbum) throws ExcepcionAlbumFamiliar {
+        return cliente.leerAlbum(idAlbum);
     }
 
     public ArrayList<Publicacion> cargarPublicaciones(Integer idAlbum) throws ExcepcionAlbumFamiliar {

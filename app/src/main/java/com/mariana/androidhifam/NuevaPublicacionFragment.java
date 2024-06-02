@@ -44,7 +44,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     private NuevaPublicacionFragmentArgs nuevaPublicacionFragmentArgs;
     private @NonNull FragmentNuevaPublicacionBinding binding;
     private CCAlbumFamiliar cliente;
-    private Integer idAlbum, idGrupo;
+    private Integer idAlbum, idGrupo, tokenUsuario;
     private MainActivity activity;
     private NavController navController;
     private Uri uriImagen;
@@ -71,6 +71,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         navController = NavHostFragment.findNavController(this);
         binding = FragmentNuevaPublicacionBinding.inflate(inflater, container, false);
         cliente = activity.getCliente();
+        tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
@@ -92,7 +93,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     public void cargarTituloAlbum(int idAlbum) {
         executorService.execute(() ->  {
             try {
-                String titulo = getString(R.string.tituloAlbumFormularioPublicacion, servicioPublicacion.cargarTituloAlbum(idAlbum));
+                String titulo = getString(R.string.tituloAlbumFormularioPublicacion, servicioPublicacion.cargarAlbum(idAlbum).getTitulo());
                 mainHandler.post(() -> binding.tituloAlbum.setText(titulo));
             } catch (ExcepcionAlbumFamiliar e) {
                 mainHandler.post(() -> Toast.makeText(getContext(), "Error al cargar el título del álbum.", Toast.LENGTH_SHORT).show());
@@ -101,14 +102,14 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
 
     }
 
-    public void crearNuevaPublicacion(Integer idAlbum, Integer idUsuario) {
+    public void crearNuevaPublicacion(Integer idAlbum, Integer tokenUsuario) {
         String tituloPublicacion = binding.tituloPublicacion.getText().toString().trim();
         String textoPublicacion = binding.textoPublicacion.getText().toString().trim();
         if (!tituloPublicacion.isEmpty() && !textoPublicacion.isEmpty() & null != uriImagen) {
             executorService.execute(() -> {
                 try {
                     DatosArchivo datosArchivo = activity.getDriveServiceHelper().uploadImageFile(uriImagen, idGrupo, idAlbum);
-                    Publicacion publicacion = construirPublicacion(datosArchivo, idUsuario);
+                    Publicacion publicacion = construirPublicacion(datosArchivo, tokenUsuario);
                     servicioPublicacion.insertarPublicacion(publicacion);
                     mainHandler.post(() -> {
                         Toast.makeText(requireContext(), "La publicación se ha creado correctamente.", Toast.LENGTH_SHORT).show();
@@ -124,7 +125,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         }
     }
 
-    public Publicacion construirPublicacion(DatosArchivo datosArchivo, int idUsuario) throws ExcepcionAlbumFamiliar {
+    public Publicacion construirPublicacion(DatosArchivo datosArchivo, int tokenUsuario) throws ExcepcionAlbumFamiliar {
         String titulo = binding.tituloPublicacion.getText().toString();
         String texto = binding.textoPublicacion.getText().toString();
         if (null != datosArchivo.getArchivoId()) {
@@ -133,7 +134,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
             publicacion.setTitulo(titulo);
             publicacion.setTexto(texto);
             Usuario usuario = new Usuario();
-            usuario.setCodUsuario(idUsuario);
+            usuario.setCodUsuario(tokenUsuario);
             publicacion.setUsuarioCreaPublicacion(usuario);
             Archivo archivo = new Archivo(null, datosArchivo.getNombre(), datosArchivo.getArchivoId());
             publicacion.setArchivo(archivo);
@@ -168,7 +169,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonCrearPublicacion) {
-            crearNuevaPublicacion(idAlbum, activity.getIdUsuario());
+            crearNuevaPublicacion(idAlbum, tokenUsuario);
         }
         else if (id == R.id.cardView) {
             seleccionarImagen();

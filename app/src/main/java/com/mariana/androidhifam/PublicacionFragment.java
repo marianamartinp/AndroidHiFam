@@ -10,12 +10,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -25,6 +30,9 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Comentario;
@@ -38,10 +46,13 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     private Publicacion publicacion;
     private String tituloAlbum;
     private ArrayList<Comentario> comentarios;
-    private Integer idPublicacion, imagenPublicacion;
+    private Integer idPublicacion, tokenUsuario;
     private CCAlbumFamiliar cliente;
     private ListAdapter<Comentario> adapter;
     private MainActivity activity;
+    private ExecutorService executorService;
+    private Handler mainHandler;
+    private boolean vistaCreada = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +64,8 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         activity = (MainActivity) getActivity();
         comentarios = new ArrayList<>();
         publicacion = new Publicacion();
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -68,7 +81,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         activity.setRefreshLayout(this);
         binding.botonNuevoComentario.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
-        cargarVistaPublicacion(idPublicacion);
+        cargarVistaPublicacion(idPublicacion, null);
     }
 
     @Override
@@ -130,7 +143,18 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    public void cargarVistaPublicacion(Integer idPublicacion) {
+    public void cargarVistaPublicacion(Integer idPublicacion, SwipeRefreshLayout refreshLayout) {
+//        activity.setHabilitarInteraccion(false);
+//        Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+//        CountDownLatch latch = new CountDownLatch(3);
+//        binding.cardView.startAnimation(parpadeo);
+//        executorService.execute(() -> cargarNombreUsuario(tokenUsuario, latch));
+//        executorService.execute(() -> cargarGrupos(tokenUsuario, latch));
+//        executorService.execute(() -> {
+//            cargarImagenesDrive(latch);
+//            mainHandler.post(this::actualizarInterfaz);
+//        });
+//        executorService.execute(() -> {
         Thread tarea = new Thread(() -> {
             try {
                 cargarPublicacion(idPublicacion);
@@ -179,8 +203,13 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
-    public void onSwipeToRefresh() {
-        cargarVistaPublicacion(idPublicacion);
-        Toast.makeText(getContext(), "Se ha actualizado la publicación.", Toast.LENGTH_SHORT).show();
+    public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
+        if (activity.getHabilitarInteraccion()) {
+            cargarVistaPublicacion(idPublicacion, refreshLayout);
+            Toast.makeText(getContext(), "Se ha actualizado la publicación.", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            refreshLayout.setRefreshing(false);
+        }
     }
 }

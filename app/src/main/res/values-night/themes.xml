@@ -1,8 +1,97 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.AndroidHiFam" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/orange</item>
+
+        <item name="android:textColor">@color/darkGrey</item>
+
+        <item name="colorSecondary">@color/darkGrey</item>
+
+        <item name="android:textColorHint">@color/lightGrey</item>
+
+        <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialog</item>
+
+        <item name="android:popupMenuStyle">@style/popupMenu</item>
+
+        <item name="android:contextPopupMenuStyle">@style/contextMenu</item>
+
+        <item name="android:itemTextAppearance">@style/customMenuFont</item>
+
+        <item name="android:alertDialogTheme">@style/AlertDialogTheme</item>
+
+        <item name="materialCalendarTheme">@style/DatePickerDialogTheme</item>
+        ...
+    </style>
+
+    <!-- tema menú inferior -->
+    <style name="Theme.AndroidHiFam" parent="Base.Theme.AndroidHiFam" />
+
+    <style name="CustomBottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomBottomSheet</item>
+        <item name="android:clipToPadding">false</item>
+        <item name="android:clipChildren">false</item>
+        <item name="android:padding">7dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+    </style>
+
+    <style name="CustomBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
+        <item name="backgroundTint">@color/eggWhite</item>
+    </style>
+
+    <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">30dp</item>
+        <item name="cornerSizeTopLeft">30dp</item>
+        <item name="cornerSizeBottomRight">30dp</item>
+        <item name="cornerSizeBottomLeft">30dp</item>
+    </style>
+
+    <style name="CustomButtonStyle" parent="Widget.Material3.Button">
+        <item name="font">@font/nunito_bold</item>
+        <item name="textColorAlertDialogListItem">@color/darkGrey</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- tema menú popup -->
+    <style name="popupMenu" parent="@style/Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/base_marco_publicacion</item>
+
+    </style>
+
+    <style name="contextMenu" parent="@style/Widget.Material3.PopupMenu.ContextMenu">
+        <item name="android:popupBackground">@drawable/base_marco_publicacion</item>
+
+    </style>
+
+    <style name="customMenuFont" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/nunito_bold</item>
+        <item name="android:textColor">@color/darkGrey</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Tema modal -->
+
+    <style name="AlertDialogTheme" parent="Theme.Material3.Light.Dialog">
+        <item name="android:windowBackground">@drawable/base_modal</item>
+    </style>
+
+    <style name="DatePickerDialogTheme" parent="@style/ThemeOverlay.MaterialComponents.MaterialCalendar">
+        <item name="borderWidth">60dp</item>
+        <item name="android:windowBackground">@drawable/base_modal</item>
+        <item name="colorAccent">@color/orange</item>
+        <item name="fontFamily">@font/nunito_bold</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.MediumComponent</item>
+    </style>
+
+    <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+    </style>
+
+    <style name="ShapeAppearance.App.MediumComponent" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerSize">16dp</item>
     </style>
 
 </resources>

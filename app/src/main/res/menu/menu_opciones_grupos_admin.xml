@@ -4,6 +4,9 @@
         android:id="@+id/verDetallesGrupo"
         android:title="@string/verDetallesGrupo"/>
     <item
+        android:id="@+id/eliminarGrupo"
+        android:title="@string/eliminarGrupo"/>
+    <item
         android:id="@+id/verIntegrantesGrupo"
         android:title="@string/verIntegrantes"/>
 </menu>

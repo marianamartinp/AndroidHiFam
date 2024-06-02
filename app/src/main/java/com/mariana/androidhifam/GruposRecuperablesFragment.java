@@ -39,13 +39,12 @@ import pojosalbumfamiliar.Grupo;
 
 public class GruposRecuperablesFragment extends Fragment implements View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
 
-    private GruposRecuperablesFragmentArgs gruposRecuperablesFragmentArgs;
     private @NonNull FragmentGruposRecuperablesBinding binding;
     private ArrayList<Grupo> grupos;
     private ArrayList<File> imagenesGrupos;
     private GridAdapter<Grupo> adapter;
     private CCAlbumFamiliar cliente;
-    private Integer idUsuario;
+    private Integer tokenUsuario;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
@@ -54,10 +53,6 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            gruposRecuperablesFragmentArgs = GruposRecuperablesFragmentArgs.fromBundle(getArguments());
-            idUsuario = gruposRecuperablesFragmentArgs.getIdUsuario();
-        }
         cliente = new CCAlbumFamiliar();
         grupos = new ArrayList<>();
         activity = (MainActivity) getActivity();
@@ -68,6 +63,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentGruposRecuperablesBinding.inflate(inflater, container, false);
+        tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
@@ -99,7 +95,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
             actualizarInterfaz();
         }
         else {
-            cargarVistaGrupos(idUsuario, false);
+            cargarVistaGrupos(tokenUsuario, refreshLayout);
         }
     }
 
@@ -143,8 +139,13 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
-    public void onSwipeToRefresh() {
-        cargarVistaGrupos(idUsuario, true);
+    public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
+        if (activity.getHabilitarInteraccion()) {
+            cargarVistaGrupos(tokenUsuario, refreshLayout);
+        }
+        else {
+            refreshLayout.setRefreshing(false);
+        }
     }
 
     @Override
@@ -154,10 +155,10 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         }
     }
 
-    public void cargarGrupos(Integer idUsuario) {
+    public void cargarGrupos(Integer tokenUsuario) {
         try {
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-            filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + idUsuario);
+            filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + tokenUsuario);
             filtros.put("g.FECHA_ELIMINACION", "is not null");
             LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
             ordenacion.put("g.titulo", "asc");
@@ -180,15 +181,18 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         mostrarTextoAlternativo();
     }
 
-    public void cargarVistaGrupos(Integer idUsuario, boolean refrescar) {
+    public void cargarVistaGrupos(Integer tokenUsuario, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
         binding.gridView.startAnimation(parpadeo);
         executorService.execute(() -> {
-            cargarGrupos(idUsuario);
+            cargarGrupos(tokenUsuario);
             binding.gridView.clearAnimation();
-            if (refrescar) {
-                Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
+            if (null != refreshLayout) {
+                refreshLayout.setRefreshing(false);
+                mainHandler.post(() -> {
+                    Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
+                });
             }
             activity.setHabilitarInteraccion(true);
             vistaCreada = true;

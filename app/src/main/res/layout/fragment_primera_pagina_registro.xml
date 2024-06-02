@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".PrimeraPaginaRegistroFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:id="@+id/nombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:text="@string/nombre"
+            android:textColor="@color/darkGrey"
+
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/editextNombre"/>
+
+        <EditText
+            android:id="@+id/editextNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:maxLength="30"
+            android:gravity="center_vertical"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="16sp"
+            android:textColor="@color/darkGrey"
+            android:hint="@string/nombrePlaceholder"
+            app:layout_constraintTop_toBottomOf="@id/nombre"
+            app:layout_constraintBottom_toTopOf="@id/usuario"
+            android:background="@drawable/contorno_gris_medio"
+            app:layout_constraintVertical_weight="1"/>
+
+        <TextView
+            android:id="@+id/usuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:text="@string/usuarioRegistro"
+            android:textColor="@color/darkGrey"
+            android:layout_marginTop="15dp"
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintTop_toBottomOf="@id/editextNombre"
+            app:layout_constraintBottom_toTopOf="@id/editextUsuario"/>
+
+        <EditText
+            android:id="@+id/editextUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:maxLength="30"
+            android:gravity="center_vertical"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="16sp"
+            android:textColor="@color/darkGrey"
+            android:hint="@string/usuarioRegistroPlaceholder"
+            app:layout_constraintTop_toBottomOf="@id/usuario"
+            app:layout_constraintBottom_toTopOf="@id/correoElectronico"
+            android:background="@drawable/contorno_gris"
+            app:layout_constraintVertical_weight="1"/>
+
+        <TextView
+            android:id="@+id/correoElectronico"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:text="@string/correoElectronico"
+            android:layout_marginTop="25dp"
+            android:textColor="@color/darkGrey"
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintTop_toBottomOf="@id/editextUsuario"
+            app:layout_constraintBottom_toTopOf="@id/editextCorreoElectronico"/>
+
+        <EditText
+            android:id="@+id/editextCorreoElectronico"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:maxLength="30"
+            android:gravity="center_vertical"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="16sp"
+            android:textColor="@color/darkGrey"
+            android:hint="@string/correoElectronicoPlaceholder"
+            app:layout_constraintTop_toBottomOf="@id/correoElectronico"
+            app:layout_constraintBottom_toTopOf="@id/telefono"
+            android:background="@drawable/contorno_gris"
+            app:layout_constraintVertical_weight="1"/>
+
+        <TextView
+            android:id="@+id/telefono"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:text="@string/telefono"
+            android:layout_marginTop="25dp"
+            android:textColor="@color/darkGrey"
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintTop_toBottomOf="@id/editextCorreoElectronico"
+            app:layout_constraintBottom_toTopOf="@id/editextTelefono"/>
+
+
+        <TextView
+            android:id="@+id/simboloMas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="20sp"
+            android:text="+"
+            android:gravity="center_vertical"
+            android:textColor="@color/darkGrey"
+            android:layout_marginEnd="10dp"
+            app:layout_constraintHorizontal_weight="1"
+            app:layout_constraintVertical_weight="1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/editextPrefijo"
+            app:layout_constraintTop_toBottomOf="@id/telefono"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <EditText
+            android:id="@+id/editextPrefijo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:inputType="number"
+            android:maxLength="3"
+            android:gravity="center"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="16sp"
+            android:textColor="@color/darkGrey"
+            android:text="@string/prefijoPorDefecto"
+            android:hint="@string/prefijoTelefonoPlaceholder"
+            app:layout_constraintHorizontal_weight="2"
+            app:layout_constraintStart_toEndOf="@id/simboloMas"
+            app:layout_constraintEnd_toStartOf="@id/editextTelefono"
+            app:layout_constraintTop_toBottomOf="@id/telefono"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@drawable/contorno_gris"
+            app:layout_constraintVertical_weight="1"/>
+
+        <EditText
+            android:id="@+id/editextTelefono"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:inputType="number"
+            android:maxLength="30"
+            android:gravity="center_vertical"
+            android:fontFamily="@font/nunito_bold"
+            android:textSize="16sp"
+            android:textColor="@color/darkGrey"
+            android:hint="@string/telefonoPlaceholder"
+            app:layout_constraintHorizontal_weight="6"
+            app:layout_constraintStart_toEndOf="@id/editextPrefijo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/telefono"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@drawable/contorno_gris"
+            app:layout_constraintVertical_weight="1"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

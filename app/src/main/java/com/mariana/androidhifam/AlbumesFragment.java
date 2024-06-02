@@ -35,6 +35,7 @@ import com.mariana.androidhifam.databinding.FragmentAlbumesBinding;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,6 +43,7 @@ import java.util.concurrent.Executors;
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Album;
+import pojosalbumfamiliar.Grupo;
 
 public class AlbumesFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, MenuProvider, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
     private AlbumesFragmentArgs albumesFragmentArgs;
@@ -50,7 +52,8 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     private ArrayList<File> imagenesAlbumes;
     GridAdapter<Album> adapter;
     private CCAlbumFamiliar cliente;
-    private Integer idGrupo;
+    private Integer idGrupo, tokenUsuario;
+    private Grupo grupo;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
@@ -75,6 +78,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentAlbumesBinding.inflate(inflater, container, false);
         cliente = activity.getCliente();
+        tokenUsuario = Integer.parseInt(activity.getToken());
         navController = NavHostFragment.findNavController(this);
         return binding.getRoot();
     }
@@ -109,7 +113,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
             resumirVistaAlbumes(idGrupo);
         }
         else {
-            cargarVistaAlbumes(idGrupo, false);
+            cargarVistaAlbumes(idGrupo, null);
         }
         registerForContextMenu(binding.gridView);
 
@@ -143,16 +147,21 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         }
     }
 
-    public void cargarTituloGrupo(Integer idGrupo, CountDownLatch latch) {;
+    public void cargarGrupo(Integer idGrupo, CountDownLatch latch) {;
         try {
-            String tituloGrupo = cliente.leerGrupo(idGrupo).getTitulo();
-            mainHandler.post(() -> binding.tituloGrupo.setText(tituloGrupo));
+            grupo = cliente.leerGrupo(idGrupo);
         }
         catch (ExcepcionAlbumFamiliar e) {
             mainHandler.post(this::errorAlCargarInterfaz);
         }
         finally {
             latch.countDown();
+        }
+    }
+
+    public void cargarTituloGrupo() {
+        if (null != grupo) {
+            binding.tituloGrupo.setText(grupo.getTitulo());
         }
     }
 
@@ -193,12 +202,15 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
         }
     }
 
-    public void cargarVistaAlbumes(Integer idGrupo, boolean refrescar) {
+    public void cargarVistaAlbumes(Integer idGrupo, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
         CountDownLatch latch = new CountDownLatch(3);
         binding.gridView.startAnimation(parpadeo);
-        executorService.execute(() -> cargarTituloGrupo(idGrupo, latch));
+        executorService.execute(() -> {
+            cargarGrupo(idGrupo, latch);
+            mainHandler.post(this::cargarTituloGrupo);
+        });
         executorService.execute(() -> cargarAlbumes(idGrupo, latch));
         executorService.execute(() -> {
             cargarImagenesDrive(latch);
@@ -209,7 +221,8 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
                 latch.await();
                 mainHandler.post(() -> {
                     binding.gridView.clearAnimation();
-                    if (refrescar) {
+                    if (null != refreshLayout) {
+                        refreshLayout.setRefreshing(false);
                         Toast.makeText(getContext(), "Se han actualizado los álbumes.", Toast.LENGTH_SHORT).show();
                     }
                     activity.setHabilitarInteraccion(true);
@@ -243,8 +256,12 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
-        popup.getMenuInflater()
-                .inflate(R.menu.menu_opciones_grupos, popup.getMenu());
+        if (Objects.equals(tokenUsuario, grupo.getUsuarioAdminGrupo().getCodUsuario())) {
+            popup.getMenuInflater().inflate(R.menu.menu_opciones_grupos_admin, popup.getMenu());
+        }
+        else {
+            popup.getMenuInflater().inflate(R.menu.menu_opciones_grupos, popup.getMenu());
+        }
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 int idMenuItem = item.getItemId();
@@ -284,9 +301,12 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
-    public void onSwipeToRefresh() {
+    public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
         if (activity.getHabilitarInteraccion()) {
-            cargarVistaAlbumes(idGrupo, true);
+            cargarVistaAlbumes(idGrupo, refreshLayout);
+        }
+        else {
+            refreshLayout.setRefreshing(false);
         }
     }
 

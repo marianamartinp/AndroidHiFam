@@ -29,10 +29,12 @@ import com.mariana.androidhifam.databinding.FragmentPublicacionesListaBinding;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Publicacion;
 
@@ -43,7 +45,8 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     private ArrayList<Publicacion> publicaciones;
     private NavController navController;
     private GridAdapter<Publicacion> adapter;
-    private Integer idAlbum, idGrupo;
+    private Integer idAlbum, idGrupo, tokenUsuario;
+    private Album album;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
@@ -69,6 +72,7 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentPublicacionesListaBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
+        tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
@@ -102,7 +106,7 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
             actualizarInterfaz();
         }
         else {
-            cargarVistaPublicaciones(idAlbum, false);
+            cargarVistaPublicaciones(idAlbum, null);
         }
     }
 
@@ -112,16 +116,21 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         binding = null;
     }
 
-    public void cargarTituloAlbum(Integer idAlbum, CountDownLatch latch) {
+    public void cargarAlbum(Integer idAlbum, CountDownLatch latch) {
         try {
-            String tituloAlbum = servicioPublicacion.cargarTituloAlbum(idAlbum);
-            mainHandler.post(() -> binding.tituloAlbum.setText(tituloAlbum));
+            album = servicioPublicacion.cargarAlbum(idAlbum);
         }
         catch (ExcepcionAlbumFamiliar e) {
-            mainHandler.post(this::errorAlCargarInterfaz);
+            mainHandler.post(() -> Toast.makeText(getContext(), "Error al el título del álbum.", Toast.LENGTH_SHORT).show());
         }
         finally {
             latch.countDown();
+        }
+    }
+
+    public void cargarTituloAlbum() {
+        if (null != album) {
+            binding.tituloAlbum.setText(album.getTitulo());
         }
     }
 
@@ -157,12 +166,15 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
         }
     }
 
-    public void cargarVistaPublicaciones(Integer idAlbum, boolean refrescar) {
+    public void cargarVistaPublicaciones(Integer idAlbum, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
         CountDownLatch latch = new CountDownLatch(3);
         binding.gridView.startAnimation(parpadeo);
-        executorService.execute(() -> cargarTituloAlbum(idAlbum, latch));
+        executorService.execute(() -> {
+            cargarAlbum(idAlbum, latch);
+            mainHandler.post(this::cargarTituloAlbum);
+        });
         executorService.execute(() -> cargarPublicaciones(idAlbum, latch));
         executorService.execute(() -> {
             cargarImagenesDrive(latch);
@@ -173,7 +185,8 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
                 latch.await();
                 mainHandler.post(() -> {
                     binding.gridView.clearAnimation();
-                    if (refrescar) {
+                    if (null != refreshLayout) {
+                        refreshLayout.setRefreshing(false);
                         Toast.makeText(getContext(), "Se han actualizado las publicaciones.", Toast.LENGTH_SHORT).show();
                     }
                     activity.setHabilitarInteraccion(true);
@@ -187,8 +200,13 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
 
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
-        popup.getMenuInflater()
-                .inflate(R.menu.menu_context_grupos, popup.getMenu());
+        if (Objects.equals(tokenUsuario, album.getUsuarioAdminAlbum().getCodUsuario()) ||
+                Objects.equals(tokenUsuario, album.getGrupoCreaAlbum().getUsuarioAdminGrupo().getCodUsuario())) {
+            popup.getMenuInflater().inflate(R.menu.menu_opciones_albumes, popup.getMenu());
+        }
+        else {
+            popup.getMenuInflater().inflate(R.menu.menu_context_albumes, popup.getMenu());
+        }
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 Toast.makeText(requireActivity(), "You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
@@ -221,9 +239,12 @@ public class PublicacionesListaFragment extends Fragment implements View.OnClick
 
     // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
     @Override
-    public void onSwipeToRefresh() {
+    public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
         if (activity.getHabilitarInteraccion()) {
-            cargarVistaPublicaciones(idAlbum, true);
+            cargarVistaPublicaciones(idAlbum, refreshLayout);
+        }
+        else {
+            refreshLayout.setRefreshing(false);
         }
     }
 

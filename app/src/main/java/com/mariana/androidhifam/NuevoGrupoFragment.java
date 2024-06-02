@@ -46,6 +46,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
     private ExecutorService executorService;
     private Handler mainHandler;
     private NavController navController;
+    private Integer tokenUsuario;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,6 +62,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         binding = FragmentNuevoGrupoBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
+        tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
@@ -87,7 +89,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
                 grupo.setDescripcion(descripcionFamilia);
             }
             Usuario usuarioAdmin = new Usuario();
-            usuarioAdmin.setCodUsuario(activity.getIdUsuario());
+            usuarioAdmin.setCodUsuario(tokenUsuario);
             grupo.setUsuarioAdminGrupo(usuarioAdmin);
 
             executorService.execute(() -> {
@@ -95,7 +97,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
                 sdf.setLenient(false);
                 LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
                 filtros.put("g.TITULO", "= '" + tituloFamilia + "'");
-                filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + activity.getIdUsuario());
+                filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + tokenUsuario);
                 filtros.put("g.FECHA_CREACION", "= '" + sdf.format(new Date()) + "'");
                 if (!descripcionFamilia.isEmpty()) {
                     filtros.put("g.DESCRIPCION", "='" + descripcionFamilia + "'");
@@ -137,12 +139,12 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
                     filtros.put("u.FECHA_ELIMINACION", "is null");
                     resultado.set(cliente.leerUsuarios(filtros, null));
                     mainHandler.post(() -> {
-                        if (!resultado.get().isEmpty() && !usuarioYaInsertado(resultado.get().get(0).getCodUsuario()) && !Objects.equals(activity.getIdUsuario(), resultado.get().get(0).getCodUsuario())) {
+                        if (!resultado.get().isEmpty() && !usuarioYaInsertado(resultado.get().get(0).getCodUsuario()) && !Objects.equals(tokenUsuario, resultado.get().get(0).getCodUsuario())) {
                             usuarios.add(resultado.get().get(0));
                             adapter.notifyItemInserted(usuarios.size());
                             binding.usuarioFamilia.setText("");
                             mostrarTextoAlternativo();
-                        } else if (!resultado.get().isEmpty() && Objects.equals(activity.getIdUsuario(), resultado.get().get(0).getCodUsuario())) {
+                        } else if (!resultado.get().isEmpty() && Objects.equals(tokenUsuario, resultado.get().get(0).getCodUsuario())) {
                             Toast.makeText(requireContext(), "Tu usuario será añadido por defecto.", Toast.LENGTH_SHORT).show();
                         }
                         else if (!resultado.get().isEmpty() && usuarioYaInsertado(resultado.get().get(0).getCodUsuario())) {

@@ -46,7 +46,7 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
     private ExecutorService executorService;
     private Handler mainHandler;
     private NavController navController;
-    private Integer idGrupo;
+    private Integer idGrupo, tokenUsuario;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,6 +65,7 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
         binding = FragmentNuevoAlbumBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
+        tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
@@ -98,7 +99,7 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
                 album.setDescripcion(descripcionAlbum);
             }
             Usuario usuarioAdmin = new Usuario();
-            usuarioAdmin.setCodUsuario(activity.getIdUsuario());
+            usuarioAdmin.setCodUsuario(tokenUsuario);
             album.setUsuarioAdminAlbum(usuarioAdmin);
             Grupo grupoCreador = new Grupo();
             grupoCreador.setCodGrupo(idGrupo);
