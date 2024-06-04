@@ -31,6 +31,7 @@ public class GridAdapter<T> extends BaseAdapter {
     private Context context;
     private ArrayList<T> objetos;
     private ArrayList<File> imagenes;
+    private ArrayList<Album> albumes;
     private Boolean vistaIndividual;
     private LayoutInflater inflater;
 
@@ -40,6 +41,15 @@ public class GridAdapter<T> extends BaseAdapter {
         this.objetos = objetos;
         this.imagenes = imagenes;
         this.vistaIndividual = vistaIndividual;
+    }
+
+    // Constructor particularmente para cargar grupos con sus respectivas imágenes
+    public GridAdapter(Context context, ArrayList<T> objetos, ArrayList<File> imagenes, Boolean vistaIndividual, ArrayList<Album> albumes) {
+        this.context = context;
+        this.objetos = objetos;
+        this.imagenes = imagenes;
+        this.vistaIndividual = vistaIndividual;
+        this.albumes = albumes;
     }
 
     @Override
@@ -111,15 +121,19 @@ public class GridAdapter<T> extends BaseAdapter {
         titulo.setText(grupos.get(position).getTitulo());
         if (!imagenes.isEmpty()) {
             for (File imagenLista : imagenes) {
-                String nombreImagen = imagenLista.getName().substring(0,3);
-                String stringEsperado = String.format("%03d", grupos.get(position).getCodGrupo());
-                if (nombreImagen.equals(stringEsperado)) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
-                    if (bitmap != null) {
-                        imagen.setImageBitmap(bitmap);
-                        break;
-                    } else {
-                        Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                String grupoImagen = imagenLista.getName().substring(0,3);
+                String albumImagen = imagenLista.getName().substring(3,8);
+                String grupoEsperado = String.format("%03d", grupos.get(position).getCodGrupo());
+                for (Album album : albumes) {
+                    String albumEsperado = String.format("%05d", album.getCodAlbum());
+                    if (grupoImagen.equals(grupoEsperado) && albumImagen.equals(albumEsperado)) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
+                        if (bitmap != null) {
+                            imagen.setImageBitmap(bitmap);
+                            break;
+                        } else {
+                            Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                        }
                     }
                 }
             }

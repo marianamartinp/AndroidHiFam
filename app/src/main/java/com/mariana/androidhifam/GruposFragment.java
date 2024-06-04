@@ -27,6 +27,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 
 import java.io.File;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -34,13 +35,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
+import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 
 public class GruposFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
 
+    private GruposFragmentArgs gruposFragmentArgs;
     private @NonNull FragmentGruposBinding binding;
     private ArrayList<Grupo> grupos;
+    private ArrayList<Album> albumes;
     private ArrayList<File> imagenesGrupos;
     private GridAdapter<Grupo> adapter;
     private CCAlbumFamiliar cliente;
@@ -55,8 +59,12 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        animar = true;
+        if (getArguments() != null) {
+            gruposFragmentArgs = GruposFragmentArgs.fromBundle(getArguments());
+            animar = gruposFragmentArgs.getAnimacionToolbar();
+        }
         grupos = new ArrayList<>();
+        albumes = new ArrayList<>();
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -75,7 +83,6 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         super.onViewCreated(view, savedInstanceState);
         if (animar) {
             activity.mostrarToolbar(true, true);
-            animar= false;
         }
         else {
             activity.mostrarToolbar(true, false);
@@ -207,8 +214,29 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
 
     public void cargarGrid() {
         imagenesGrupos = activity.getImagenes();
-        adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
+        adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false, albumes);
         binding.gridView.setAdapter(adapter);
+    }
+
+    public void cargarAlbumesNoEliminados(CountDownLatch latch) {
+        try {
+            LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
+            filtros.put("a.FECHA_ELIMINACION", "is null");
+            String codigosGrupos = "0 ";
+            for (Grupo grupo : grupos) {
+                codigosGrupos = codigosGrupos + ", " + grupo.getCodGrupo();
+            }
+            filtros.put("a.COD_GRUPO_CREA_ALBUM", "in (" + codigosGrupos + ")");
+            albumes = cliente.leerAlbumes(filtros, null);
+            mainHandler.post(this::actualizarInterfaz);
+        } catch (ExcepcionAlbumFamiliar e) {
+            mainHandler.post(() -> Toast.makeText(getContext(), "Se ha producido un error.", Toast.LENGTH_SHORT).show());
+        }
+        finally {
+            if (null != latch) {
+                latch.countDown();
+            }
+        }
     }
 
     public void actualizarInterfaz() {
@@ -227,13 +255,13 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void cargarVistaGrupos(Integer tokenUsuario, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
-        CountDownLatch latch = new CountDownLatch(3);
+        CountDownLatch latch = new CountDownLatch(4);
         binding.gridView.startAnimation(parpadeo);
         executorService.execute(() -> cargarNombreUsuario(tokenUsuario, latch));
         executorService.execute(() -> cargarGrupos(tokenUsuario, latch));
         executorService.execute(() -> {
             cargarImagenesDrive(latch);
-            mainHandler.post(this::actualizarInterfaz);
+            cargarAlbumesNoEliminados(latch);
         });
         executorService.execute(() -> {
             try {
@@ -256,9 +284,12 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void resumirVistaGrupos(Integer tokenUsuario) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
-        CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(2);
         binding.gridView.startAnimation(parpadeo);
-        executorService.execute(() -> cargarGrupos(tokenUsuario, latch));
+        executorService.execute(() -> {
+            cargarGrupos(tokenUsuario, latch);
+            cargarAlbumesNoEliminados(latch);
+        });
         executorService.execute(() -> {
             try {
                 latch.await();

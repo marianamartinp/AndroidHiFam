@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Usuario;
 
 public class RegistroFragment extends Fragment implements View.OnClickListener {
@@ -73,12 +74,6 @@ public class RegistroFragment extends Fragment implements View.OnClickListener {
         pantallas.add(new SegundaPaginaRegistroFragment());
 
         binding.viewPager.setAdapter(new ViewPagerAdapter(requireActivity().getSupportFragmentManager(), getLifecycle(), pantallas));
-        binding.viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                super.onPageSelected(position);
-            }
-        });
 
         binding.btnSiguienteLogin.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);

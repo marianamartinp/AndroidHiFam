@@ -1,7 +1,8 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.mariana.androidhifam.PublicacionesFragment">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mariana.androidhifam.AlbumesRecuperablesFragment">
+
     <LinearLayout
         android:id="@+id/LinLayPrincipal"
         android:layout_width="match_parent"
@@ -18,47 +19,40 @@
             android:gravity="center"
             android:layout_weight="1">
             <TextView
-                android:id="@+id/tituloAlbum"
+                android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:fontFamily="@font/nunito_bold"
                 android:shadowColor="@color/mediumGrey"
                 android:shadowRadius="5"
                 android:layout_gravity="center"
-                android:text="@string/tituloAlbum"
-                android:textSize="25sp"/>
-            <ImageView
-                android:id="@+id/botonOpciones"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"
-                android:adjustViewBounds="true"
-                app:layout_constraintDimensionRatio="W,1:1"
-                android:src="@drawable/dotsverticalwhite"/>
+                android:text="@string/tituloAlbumesRecuperables"
+                android:textSize="30sp"/>
 
         </LinearLayout>
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/descripcionFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_weight="0.9">
-            <ImageView
-                android:id="@+id/botonVistaIndividual"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:adjustViewBounds="true"
-                android:src="@drawable/photograph"/>
-
-        </LinearLayout>
+            android:layout_weight="1"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginEnd="30dp"
+            android:textAlignment="center"
+            android:fontFamily="@font/nunito_bold"
+            android:text="@string/descripcionAlbumesRecuperables"
+            android:visibility="visible"
+            android:textSize="17sp"
+            android:textColor="@color/mediumGrey"
+            app:layout_constraintTop_toBottomOf="@id/LinLayPrincipal"
+            app:layout_constraintBottom_toTopOf="@id/constraintLay"/>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLay"
             android:layout_width="match_parent"
+            android:layout_marginTop="20dp"
             android:layout_height="0dp"
-            android:layout_weight="15">
+            android:layout_weight="16">
             <TextView
                 android:id="@+id/textoAlternativo"
                 android:layout_width="match_parent"
@@ -69,37 +63,25 @@
                 android:layout_marginEnd="30dp"
                 android:textAlignment="center"
                 android:fontFamily="@font/nunito_bold"
-                android:textSize="17sp"
                 android:text="@string/textoAlternativo"
                 android:visibility="visible"
+                android:textSize="17sp"
                 android:textColor="@color/mediumGrey"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/botonNuevaPublicacion"/>
+                app:layout_constraintBottom_toBottomOf="parent"/>
             <GridView
                 android:id="@+id/gridView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_marginStart="30dp"
                 android:layout_marginEnd="30dp"
-                android:numColumns="3"
-                android:verticalSpacing="9dp"
-                app:layout_constraintBottom_toTopOf="@id/botonNuevaPublicacion"
-                app:layout_constraintDimensionRatio="H,12:16"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <ImageButton
-                android:id="@+id/botonNuevaPublicacion"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:layout_weight="4"
-                android:background="@null"
-                android:scaleType="fitCenter"
-                android:src="@drawable/botonnuevo"
-                android:layout_marginBottom="20dp"
+                android:numColumns="2"
+                android:verticalSpacing="20dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/gridView" />
+                app:layout_constraintDimensionRatio="H,10:16"
+                app:layout_constraintTop_toTopOf="parent"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
+
 </layout>

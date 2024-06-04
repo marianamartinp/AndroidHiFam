@@ -39,7 +39,7 @@ public class CCAlbumFamiliar {
 //            String equipoServidor = "172.16.5.34";
             int puertoServidor = 30500;
             socketCliente = new Socket(equipoServidor, puertoServidor); 
-            socketCliente.setSoTimeout(10000);
+            socketCliente.setSoTimeout(30000);
         } catch (IOException ex) {
             manejadorIOException(ex);
         }
@@ -55,17 +55,25 @@ public class CCAlbumFamiliar {
     
     public Respuesta gestionarComunicacion (Peticion p) throws ExcepcionAlbumFamiliar{
         Respuesta r = null;
+        ObjectOutputStream oos = null;
+        ObjectInputStream ois = null;
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(socketCliente.getOutputStream());
+            oos = new ObjectOutputStream(socketCliente.getOutputStream());
             oos.writeObject(p);
-            ObjectInputStream ois = new ObjectInputStream(socketCliente.getInputStream());
+            oos.flush();
+            ois = new ObjectInputStream(socketCliente.getInputStream());
             r = (Respuesta) ois.readObject();
-            ois.close();
-            oos.close();
         } catch (IOException ex) {
             manejadorIOException(ex);
         } catch (ClassNotFoundException ex) {
             manejadorClassNotFoundException(ex);
+        } finally {
+            try {
+                if (ois != null) ois.close();
+                if (oos != null) oos.close();
+            } catch (IOException ex) {
+                manejadorIOException(ex);
+            }
         }
         return r;
     }

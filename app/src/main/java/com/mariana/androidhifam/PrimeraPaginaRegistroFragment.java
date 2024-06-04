@@ -85,7 +85,7 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
                 if (!hasFocus) {
                     String email = binding.editextCorreoElectronico.getText().toString().trim();
                     if (!email.isEmpty()) {
-                        if (ValidadorEmail.esEmailValido(email)) {
+                        if (Utils.esEmailValido(email)) {
                             executorService.execute(() -> {
                                 try {
                                     LinkedHashMap<String, String> filtros = new LinkedHashMap<>();

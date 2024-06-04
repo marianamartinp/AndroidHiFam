@@ -30,12 +30,13 @@
                     android:textSize="30sp"/>
                 <ImageView
                     android:id="@+id/botonPapelera"
-                    android:layout_width="30dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="4dp"
                     android:layout_marginStart="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
                     android:adjustViewBounds="true"
+                    app:layout_constraintDimensionRatio="W,1:1"
                     android:src="@drawable/trash"/>
 
             </LinearLayout>

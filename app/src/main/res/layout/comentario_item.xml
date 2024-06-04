@@ -39,11 +39,41 @@
             android:layout_marginStart="10dp"
             android:text="Usuario"
             android:textSize="17sp"
+            app:layout_constraintHorizontal_weight="2"
             android:fontFamily="@font/nunito_bold"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@id/iconoNota"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/fechaComentario"
             app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/fechaComentario"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:text="Fecha"
+            android:textAlignment="textEnd"
+            android:textSize="14sp"
+            android:textColor="@color/mediumGrey"
+            app:layout_constraintHorizontal_weight="1.5"
+            android:fontFamily="@font/nunito_bold"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/usuarioComentario"
+            app:layout_constraintEnd_toStartOf="@id/iconoEliminar"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <ImageView
+            android:id="@+id/iconoEliminar"
+            android:layout_width="30dp"
+            android:layout_height="0dp"
+            android:src="@drawable/trashorange"
+            android:layout_marginStart="10dp"
+            android:visibility="invisible"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/fechaComentario"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
     <View

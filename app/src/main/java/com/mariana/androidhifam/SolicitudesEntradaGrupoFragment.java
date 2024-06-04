@@ -48,12 +48,12 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
     private SolicitudesEntradaGrupoFragmentArgs solicitudesEntradaGrupoFragmentArgs;
     private NavController navController;
     private ListAdapter<SolicitudEntradaGrupo> adapter;
-    private ServicioSolicitudEntradaGrupo servicioSolicitudEntradaGrupo;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
     private ArrayList<SolicitudEntradaGrupo> solicitudes;
     private Integer idGrupo;
+    private CCAlbumFamiliar cliente;
 
 
     @Override
@@ -67,12 +67,12 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         solicitudes = new ArrayList<>();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
-        servicioSolicitudEntradaGrupo = new ServicioSolicitudEntradaGrupo();
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        cliente = activity.getCliente();
         binding = FragmentSolicitudesEntradaGrupoBinding.inflate(getLayoutInflater());
         navController = NavHostFragment.findNavController(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -117,18 +117,23 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
 
     @Override
     public void onItemClick(Object item, int position, int idButton) {
-        if (idButton == R.id.iconoEquis) {
-            rechazarSolicitudUsuario(item, position);
-        }
-        else if (idButton == R.id.iconoTick) {
-            aceptarSolicitudUsuario(item, position);
+        if (activity.getHabilitarInteraccion()) {
+            if (idButton == R.id.iconoEquis) {
+                rechazarSolicitudUsuario((SolicitudEntradaGrupo) item, position);
+            } else if (idButton == R.id.iconoTick) {
+                aceptarSolicitudUsuario((SolicitudEntradaGrupo) item, position);
+            }
         }
     }
 
     public void cargarSolicitudesEntradaGrupo(int idGrupo) {
         executorService.execute(() -> {
             try {
-                solicitudes = servicioSolicitudEntradaGrupo.leerSolicitudesEntradaGrupo(idGrupo);
+                LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
+                filtros.put("g.COD_GRUPO", "=" + idGrupo);
+                LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
+                ordenacion.put("seg.FECHA_SOLICITUD", "asc");
+                solicitudes = cliente.leerSolicitudesEntradaGrupo(filtros, ordenacion);
                 mainHandler.post(() -> {
                     adapter = new ListAdapter<>(requireContext(), solicitudes, ItemsListAdapter.ITEM_SOLICITUD_GRUPO, this);
                     binding.miembrosGrupo.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -142,11 +147,12 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         });
     }
 
-    public void aceptarSolicitudUsuario(Object item, int position) {
-        SolicitudEntradaGrupo seg = (SolicitudEntradaGrupo) item;
+    public void aceptarSolicitudUsuario(SolicitudEntradaGrupo item, int position) {
+        SolicitudEntradaGrupo seg = item;
         executorService.execute(() -> {
             try {
-                servicioSolicitudEntradaGrupo.aceptarSolicitudEntradaGrupo(seg);
+                cliente.insertarUsuarioIntegraGrupo(new UsuarioIntegraGrupo(seg.getUsuario(), seg.getGrupo()));
+                cliente.eliminarSolicitudEntradaGrupo(seg.getUsuario().getCodUsuario(), seg.getGrupo().getCodGrupo());
                 mainHandler.post(() -> {
                     actualizarGrid(position);
                 });
@@ -156,11 +162,10 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         });
     }
 
-    public void rechazarSolicitudUsuario(Object item, int position) {
-        SolicitudEntradaGrupo seg = (SolicitudEntradaGrupo) item;
+    public void rechazarSolicitudUsuario(SolicitudEntradaGrupo item, int position) {
         executorService.execute(() -> {
             try {
-                servicioSolicitudEntradaGrupo.rechazarSolicitudEntradaGrupo(seg);
+                cliente.eliminarSolicitudEntradaGrupo(item.getUsuario().getCodUsuario(), item.getGrupo().getCodGrupo());
                 mainHandler.post(() -> {
                     actualizarGrid(position);
                 });

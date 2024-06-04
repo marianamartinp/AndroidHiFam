@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".IngresoGrupoFragment">
+    tools:context=".NuevoComentarioFragment">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -19,55 +19,55 @@
                 app:layout_constraintBottom_toBottomOf="@id/textViewIngresoEnGrupo"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintDimensionRatio="W,1:1"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginBottom="5dp"/>
+                android:layout_marginStart="10dp"/>
             <TextView
-                android:id="@+id/textViewIngresoEnGrupo"
+                android:id="@+id/textViewComentario"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/solicitarIngresoEnGrupo"
+                android:text="@string/textoNuevoComentario"
                 android:justificationMode="inter_word"
                 android:fontFamily="@font/nunito_bold"
                 android:textSize="16sp"
                 android:textColor="@color/darkGrey"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/editableCodigo"
+                app:layout_constraintBottom_toTopOf="@id/editableTexto"
                 app:layout_constraintStart_toEndOf="@id/botonAtras"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="20dp"/>
             <EditText
-                android:id="@+id/editableCodigo"
+                android:id="@+id/editableTexto"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:fontFamily="@font/nunito_bold"
                 android:textSize="14sp"
-                android:gravity="center"
-                android:inputType="number"
-                android:maxLength="3"
-                android:hint="@string/campoCodigoDeGrupo"
+                android:gravity="start"
+                android:maxLength="150"
+                android:maxLines="3"
+                android:hint="@string/placeholderNuevoComentario"
                 android:background="@drawable/contorno_gris"
-                app:layout_constraintTop_toBottomOf="@id/textViewIngresoEnGrupo"
-                app:layout_constraintBottom_toTopOf="@id/botonEnviarSolicitud"
+                app:layout_constraintTop_toBottomOf="@id/textViewComentario"
+                app:layout_constraintBottom_toTopOf="@id/botonEnviarComentario"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"/>
             <Button
-                android:id="@+id/botonEnviarSolicitud"
+                android:id="@+id/botonEnviarComentario"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:text="@string/botonEnviarSolicitud"
+                android:text="@string/botonNuevoComentario"
                 android:textSize="16sp"
                 android:fontFamily="@font/nunito_bold"
                 android:textColor="@color/eggWhite"
                 android:textAlignment="center"
-                android:backgroundTint="@color/orange"
-                app:layout_constraintTop_toBottomOf="@id/editableCodigo"
+                app:layout_constraintTop_toBottomOf="@id/editableTexto"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </RelativeLayout>
+
 </layout>

@@ -3,4 +3,7 @@
     <dimen name="dialog_margin">40dp</dimen>
     <dimen name="dialog_solicitudes_width_margin">30dp</dimen>
     <dimen name="dialog_solicitudes_heigth_margin">100dp</dimen>
+
+    <dimen name="dialog_ingreso_grupo_width_margin">30dp</dimen>
+    <dimen name="dialog_ingreso_grupo_heigth_margin">280dp</dimen>
 </resources>

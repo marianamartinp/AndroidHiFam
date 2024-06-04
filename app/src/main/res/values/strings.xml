@@ -15,10 +15,13 @@
     <string name="tituloGrupo">Titulo de la familia</string>
     <string name="tituloAlbum">Titulo del album</string>
 
+    <!--    Drawer Layout-->
     <string name="miInfo">Mi Informacion</string>
     <string name="crearGrupo">Crear nuevo grupo</string>
     <string name="ingresarEnGrupo">Ingresar en grupo existente</string>
     <string name="cerrarSesion">Cerrar Sesión</string>
+    <string name="drawerAbierto">Cajón de opciones abierto</string>
+    <string name="drawerCerrado">Cajón de opciones cerrado</string>
 
     <string name="nuevaPublicacionAlbum">Álbum: Titulo álbum</string>
     <string name="tituloAlbumFormularioPublicacion">Álbum: %1$s</string>
@@ -35,15 +38,26 @@
 
     <string name="nombreUsuario">"@Usuario"</string>
 
+    <!-- Modal ingreso en grupo -->
     <string name="solicitarIngresoEnGrupo">Ingresa un código de grupo para mandar una solicitud.</string>
     <string name="botonEnviarSolicitud">Enviar solicitud</string>
     <string name="campoCodigoDeGrupo">Escribe aquí tu código</string>
 
-    <string name="tituloGruposRecuperables">Familas Eliminadas</string>
+    <!-- Modal nuevo comentario -->
+    <string name="textoNuevoComentario">Nuevo comentario</string>
+    <string name="placeholderNuevoComentario">Escribe algo bonito...</string>
+    <string name="botonNuevoComentario">Enviar</string>
 
-    <string name="textoAlternativo">No hay nada por aquí.</string>
+    <!-- Grupos recuperables -->
+    <string name="tituloGruposRecuperables">Familas Eliminadas</string>
     <string name="descripcionGruposRecuperables">Aquí podrás ver tus grupos eliminados.</string>
 
+    <!-- Albumes recuperables -->
+    <string name="tituloAlbumesRecuperables">Álbumes Eliminados</string>
+    <string name="descripcionAlbumesRecuperables">Aquí podrás ver tus álbumes eliminados.</string>
+
+    <!--Texto alternativo-->
+    <string name="textoAlternativo">No hay nada por aquí.</string>
 
     <!-- Botones de modales -->
     <string name="btnRecuperar">Recuperar</string>
@@ -56,11 +70,15 @@
     <!-- Items menús contextuales -->
     <string name="verDetallesGrupo">Detalles del Grupo</string>
     <string name="verIntegrantes">Integrantes del Grupo</string>
+    <string name="verAlbumesEliminados">Álbumes Eliminados</string>
     <string name="eliminarGrupo">Eliminar Grupo</string>
     <string name="eliminarAlbum">Eliminar Álbum</string>
     <string name="recuperarGrupo">Recuperar grupo</string>
-
+    <string name="recuperarAlbum">Recuperar álbum</string>
     <string name="verDetallesAlbum">Detalles del Álbum</string>
+    <string name="verAlbum">Ver Álbum</string>
+    <string name="verGrupo">Ver Grupo</string>
+    <string name="eliminarPublicacion">Eliminar Publicación</string>
 
     <!-- Formulario nuevo álbum -->
     <string name="grupoAlbum">Grupo: tituloGrupo</string>
@@ -113,5 +131,18 @@
         Al menos un dígito.\n
         Al menos un carácter especial (@, #, $, %, etc.).
     </string>
+
+
+    <!-- Detalles Grupo Fragment -->
+    <string name="detallesGrupo">Detalles de la familia</string>
+
+    <!-- TabLayout -->
+    <string name="tabDetalles">Información</string>
+    <string name="tabMiembros">Miembros</string>
+
+    <!-- Tab Detalles Grupo Fragment -->
+    <string name="codigoGrupo">Código:</string>
+    <string name="fechaCreacionGrupo">Creación:</string>
+    <string name="adminGrupo">Admin:</string>
 
 </resources>

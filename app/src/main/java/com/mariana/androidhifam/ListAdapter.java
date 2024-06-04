@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import pojosalbumfamiliar.Comentario;
 import pojosalbumfamiliar.SolicitudEntradaGrupo;
@@ -23,7 +24,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
     private Context context;
     private LayoutInflater inflater;
     private OnItemClickListener listener;
-    private static int item; // Constante con un número que referencia al tipo de de dato a inflar.
+    private static Integer item, adminAlbum, adminGrupo, tokenUsuario; // Constante con un número que referencia al tipo de de dato a inflar.
 
 
     public interface OnItemClickListener {
@@ -36,6 +37,27 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
         this.context = context;
         ListAdapter.item = item;
         this.listener = listener;
+    }
+
+    // Constructor para los comentarios
+    public ListAdapter(Context context, ArrayList<T> objetos, int item, OnItemClickListener listener, Integer adminGrupo, Integer adminAlbum, int tokenUsuario) {
+        this.objetos = objetos;
+        this.context = context;
+        ListAdapter.item = item;
+        this.listener = listener;
+        ListAdapter.adminAlbum = adminAlbum;
+        ListAdapter.adminGrupo = adminGrupo;
+        ListAdapter.tokenUsuario = tokenUsuario;
+    }
+
+    // Constructor para la gestión de miembros de un grupo.
+    public ListAdapter(Context context, ArrayList<T> objetos, int item, OnItemClickListener listener, Integer adminGrupo, Integer tokenUsuario) {
+        this.objetos = objetos;
+        this.context = context;
+        ListAdapter.item = item;
+        this.listener = listener;
+        ListAdapter.adminGrupo = adminGrupo;
+        ListAdapter.tokenUsuario = tokenUsuario;
     }
 
     @Override
@@ -71,8 +93,8 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView usuario, contenido, fechaSolicitud;
-        public ImageView iconoEquis, iconoTick;
+        public TextView usuario, contenido, fecha;
+        public ImageView iconoEquis, iconoTick, iconoEliminar;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -80,6 +102,8 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                 case ItemsListAdapter.ITEM_COMENTARIO:
                     this.usuario = itemView.findViewById(R.id.usuarioComentario);
                     this.contenido = itemView.findViewById(R.id.contenidoComentario);
+                    this.fecha = itemView.findViewById(R.id.fechaComentario);
+                    this.iconoEliminar = itemView.findViewById(R.id.iconoEliminar);
                     break;
                 case ItemsListAdapter.ITEM_MIEMBRO_GRUPO:
                     this.usuario = itemView.findViewById(R.id.usuarioMiembro);
@@ -87,7 +111,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                     break;
                 case ItemsListAdapter.ITEM_SOLICITUD_GRUPO:
                     this.usuario = itemView.findViewById(R.id.usuarioSolicitante);
-                    this.fechaSolicitud = itemView.findViewById(R.id.fechaSolicitud);
+                    this.fecha = itemView.findViewById(R.id.fechaSolicitud);
                     this.iconoEquis = itemView.findViewById(R.id.iconoEquis);
                     this.iconoTick = itemView.findViewById(R.id.iconoTick);
                     break;
@@ -99,25 +123,61 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
             switch(item) {
                 case ItemsListAdapter.ITEM_COMENTARIO:
                     Comentario comentario = (Comentario) objeto;
-                    this.usuario.setText(comentario.getUsuarioCreaComentario().getUsuario());
+                    this.usuario.setText("@" + comentario.getUsuarioCreaComentario().getUsuario());
+                    this.fecha.setText(Utils.parsearDateAString(comentario.getFechaCreacion()));
                     this.contenido.setText(comentario.getTexto());
+                    if (Objects.equals(tokenUsuario, comentario.getUsuarioCreaComentario().getCodUsuario()) ||
+                            Objects.equals(tokenUsuario, adminAlbum) || Objects.equals(tokenUsuario, adminGrupo)) {
+                        this.iconoEliminar.setVisibility(View.VISIBLE);
+                        this.iconoEliminar.setOnClickListener(new View.OnClickListener() {
+                            @Override public void onClick(View v) {
+                                listener.onItemClick(objeto, position, R.id.iconoEliminar);
+                            }
+                        });
+                    }
+                    else {
+                        this.iconoEliminar.setVisibility(View.INVISIBLE);
+                    }
                     break;
                 case ItemsListAdapter.ITEM_MIEMBRO_GRUPO:
                     Usuario usuario = (Usuario) objeto;
-                    this.usuario.setText("@"+usuario.getUsuario());
-                    this.iconoEquis.setOnClickListener(new View.OnClickListener() {
-                        @Override public void onClick(View v) {
-                            listener.onItemClick(objeto, position, R.id.iconoEquis);
+                    this.usuario.setText("@" + usuario.getUsuario());
+                    // Caso que se dará al poblar los miembros al modificar un grupo
+                    if (null != tokenUsuario && null != adminGrupo) {
+                        if (Objects.equals(tokenUsuario, adminGrupo)) {
+                            if (!Objects.equals(tokenUsuario, usuario.getCodUsuario())) {
+                                this.iconoEquis.setVisibility(View.VISIBLE);
+                                this.iconoEquis.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        listener.onItemClick(objeto, position, R.id.iconoEquis);
+                                    }
+                                });
+                            }
+                            else {
+                                this.iconoEquis.setVisibility(View.INVISIBLE);
+                            }
                         }
-                    });
+                        else {
+                            this.iconoEquis.setVisibility(View.INVISIBLE);
+                        }
+                    }
+                    // Resto de casos
+                    else {
+                        this.iconoEquis.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                listener.onItemClick(objeto, position, R.id.iconoEquis);
+                            }
+                        });
+                    }
                     break;
                 case ItemsListAdapter.ITEM_SOLICITUD_GRUPO:
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
                     sdf.setLenient(false);
                     SolicitudEntradaGrupo solicitud = (SolicitudEntradaGrupo) objeto;
                     this.usuario.setText("@"+solicitud.getUsuario().getUsuario());
-                    this.fechaSolicitud.setText(sdf.format(solicitud.getFechaSolicitud()));
-
+                    this.fecha.setText(sdf.format(solicitud.getFechaSolicitud()));
                     this.iconoEquis.setOnClickListener(new View.OnClickListener() {
                         @Override public void onClick(View v) {
                             listener.onItemClick(objeto, position, R.id.iconoEquis);

@@ -7,17 +7,17 @@
         android:id="@+id/rootViewRegistro"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="10dp"
         android:paddingBottom="40dp"
         android:paddingStart="45dp"
-        android:paddingEnd="45dp">
+        android:paddingEnd="45dp"
+        android:layout_marginTop="-24dp">
         <ImageView
             android:id="@+id/logo"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:src="@drawable/logohifam"
-            app:layout_constraintDimensionRatio="H,12:4"
+            app:layout_constraintDimensionRatio="H,12:3.5"
             android:layout_marginBottom="-10dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/eslogan"
@@ -34,7 +34,8 @@
             android:gravity="center"
             android:layout_marginTop="-15dp"
             app:layout_constraintVertical_weight="1"
-            app:layout_constraintTop_toBottomOf="@id/logo"/>
+            app:layout_constraintTop_toBottomOf="@id/logo"
+            app:layout_constraintBottom_toTopOf="@id/registro"/>
 
         <ImageView
             android:id="@+id/botonAtras"
@@ -57,7 +58,7 @@
             android:textSize="25sp"
             android:text="@string/registro"
             android:gravity="center"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/orange"
             app:layout_constraintVertical_weight="1"
             app:layout_constraintStart_toStartOf="parent"

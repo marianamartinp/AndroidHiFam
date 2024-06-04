@@ -1,7 +1,5 @@
 package com.mariana.androidhifam;
 
-import static androidx.navigation.Navigation.findNavController;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,38 +21,45 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.mariana.androidhifam.databinding.FragmentAlbumesRecuperablesBinding;
 import com.mariana.androidhifam.databinding.FragmentGruposRecuperablesBinding;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
+import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 
-public class GruposRecuperablesFragment extends Fragment implements View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
+public class AlbumesRecuperablesFragment extends Fragment implements View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
 
-    private @NonNull FragmentGruposRecuperablesBinding binding;
-    private ArrayList<Grupo> grupos;
-    private ArrayList<File> imagenesGrupos;
-    private GridAdapter<Grupo> adapter;
+    private @NonNull AlbumesFragmentArgs albumesFragmentArgs;
+    private @NonNull FragmentAlbumesRecuperablesBinding binding;
+    private ArrayList<Album> albumes;
+    private ArrayList<File> imagenesAlbumes;
+    private GridAdapter<Album> adapter;
     private CCAlbumFamiliar cliente;
-    private Integer tokenUsuario;
+    private Integer tokenUsuario, idGrupo;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
-    private boolean vistaCreada = false;
+    private Grupo grupo;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            albumesFragmentArgs = AlbumesFragmentArgs.fromBundle(getArguments());
+            idGrupo = albumesFragmentArgs.getIdGrupo();
+        }
         cliente = new CCAlbumFamiliar();
-        grupos = new ArrayList<>();
+        albumes = new ArrayList<>();
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -62,7 +67,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        binding = FragmentGruposRecuperablesBinding.inflate(inflater, container, false);
+        binding = FragmentAlbumesRecuperablesBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
@@ -91,7 +96,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
             }
         });
         binding.gridView.setOnItemClickListener(this);
-        cargarVistaGrupos(tokenUsuario, refreshLayout);
+        cargarVistaAlbumes(tokenUsuario, idGrupo, refreshLayout);
     }
 
     @Override
@@ -107,8 +112,8 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         int itemId = (int) binding.gridView.getAdapter().getItemId(position);
         int idMenuItem = item.getItemId();
 
-        if (idMenuItem == R.id.recuperarGrupo) {
-            modalRecuperarGrupo(position, itemId);
+        if (idMenuItem == R.id.recuperarAlbum) {
+            modalRecuperarAlbum(position, itemId);
             return true;
         }
         else {
@@ -121,14 +126,14 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         if (activity.getHabilitarInteraccion()) {
             super.onCreateContextMenu(menu, v, menuInfo);
             MenuInflater inflater = getActivity().getMenuInflater();
-            inflater.inflate(R.menu.menu_grupos_recuperables, menu);
+            inflater.inflate(R.menu.menu_albumes_recuperables, menu);
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (activity.getHabilitarInteraccion()) {
-            modalRecuperarGrupo(position, (int) id);
+            modalRecuperarAlbum(position, (int) id);
         }
     }
 
@@ -136,7 +141,7 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     @Override
     public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
         if (activity.getHabilitarInteraccion()) {
-            cargarVistaGrupos(tokenUsuario, refreshLayout);
+            cargarVistaAlbumes(tokenUsuario, idGrupo, refreshLayout);
         }
         else {
             refreshLayout.setRefreshing(false);
@@ -146,18 +151,19 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     @Override
     public void onPositiveClick(String idModal, Integer position, Integer id) {
         if (activity.getHabilitarInteraccion()) {
-            recuperarGrupo(position, id);
+            recuperarAlbum(position, id);
         }
     }
 
-    public void cargarGrupos(Integer tokenUsuario) {
+    public void cargarAlbumes(Integer tokenUsuario, Integer idGrupo) {
         try {
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-            filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + tokenUsuario);
-            filtros.put("g.FECHA_ELIMINACION", "is not null");
+            filtros.put("a.COD_USUARIO_ADMIN_ALBUM", "=" + tokenUsuario);
+            filtros.put("a.COD_GRUPO_CREA_ALBUM", "=" + idGrupo);
+            filtros.put("a.FECHA_ELIMINACION", "is not null");
             LinkedHashMap<String, String> ordenacion = new LinkedHashMap<>();
-            ordenacion.put("g.titulo", "asc");
-            grupos = cliente.leerGrupos(filtros, ordenacion);
+            ordenacion.put("a.titulo", "asc");
+            albumes = cliente.leerAlbumes(filtros,ordenacion);
             mainHandler.post(this::actualizarInterfaz);
         }
         catch (ExcepcionAlbumFamiliar e) {
@@ -166,8 +172,8 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     }
 
     public void cargarGrid() {
-        imagenesGrupos = activity.getImagenes();
-        adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false);
+        imagenesAlbumes = activity.getImagenes();
+        adapter = new GridAdapter<>(requireContext(), albumes, imagenesAlbumes, false);
         binding.gridView.setAdapter(adapter);
     }
 
@@ -176,47 +182,46 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
         mostrarTextoAlternativo();
     }
 
-    public void cargarVistaGrupos(Integer tokenUsuario, SwipeRefreshLayout refreshLayout) {
+    public void cargarVistaAlbumes(Integer tokenUsuario, Integer idGrupo, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
         binding.gridView.startAnimation(parpadeo);
         executorService.execute(() -> {
-            cargarGrupos(tokenUsuario);
+            cargarAlbumes(tokenUsuario, idGrupo);
             mainHandler.post(() -> {
                 binding.gridView.clearAnimation();
                 if (null != refreshLayout) {
                     refreshLayout.setRefreshing(false);
-                    Toast.makeText(getContext(), "Se han actualizado las familias eliminadas.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Se han actualizado los álbumes eliminados.", Toast.LENGTH_SHORT).show();
                 }
                 activity.setHabilitarInteraccion(true);
-                vistaCreada = true;
             });
         });
     }
 
-    public void modalRecuperarGrupo(int position, int id) {
-        ModalFragment modal = new ModalFragment("recuperarGrupo", position, (int) id, this, "¿Desea recuperar esta familia?", getString(R.string.btnRecuperar), getString(R.string.btnCancelar));
-        modal.show(activity.getSupportFragmentManager(), "modalRecuperarGrupo");
+    public void modalRecuperarAlbum(int position, int id) {
+        ModalFragment modal = new ModalFragment("recuperarAlbum", position, (int) id, this, "¿Desea recuperar este álbum?", getString(R.string.btnRecuperar), getString(R.string.btnCancelar));
+        modal.show(activity.getSupportFragmentManager(), "modalRecuperarAlbum");
     }
 
-    public void recuperarGrupo(int position, int idGrupo) {
+    public void recuperarAlbum(int position, int idAlbum) {
         executorService.execute(() -> {
             try {
-                cliente.restaurarGrupo(idGrupo);
+                cliente.restaurarAlbum(idAlbum);
                 mainHandler.post(() -> {
-                    grupos.remove(position);
+                    albumes.remove(position);
                     adapter.notifyDataSetChanged();
                     mostrarTextoAlternativo();
-                    Toast.makeText(requireContext(), "Familia recuperada.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Álbum recuperado.", Toast.LENGTH_SHORT).show();
                 });
             } catch (ExcepcionAlbumFamiliar e) {
-                Toast.makeText(getContext(), "Error al recuperar la familia.", Toast.LENGTH_SHORT).show();
+                mainHandler.post(() -> Toast.makeText(getContext(), "Error al recuperar el álbum.", Toast.LENGTH_SHORT).show());
             }
         });
     }
 
     public void mostrarTextoAlternativo() {
-        if (grupos.isEmpty()) {
+        if (albumes.isEmpty()) {
             new Handler().postDelayed(() -> {
                 binding.textoAlternativo.setVisibility(View.VISIBLE);
             }, 200);
@@ -226,6 +231,6 @@ public class GruposRecuperablesFragment extends Fragment implements View.OnCreat
     }
 
     public void errorAlCargarInterfaz() {
-        Toast.makeText(getContext(), "Error al cargar las familias eliminadas.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Error al cargar los álbumes eliminados.", Toast.LENGTH_SHORT).show();
     }
 }

@@ -93,12 +93,10 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
             grupo.setUsuarioAdminGrupo(usuarioAdmin);
 
             executorService.execute(() -> {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                sdf.setLenient(false);
                 LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
                 filtros.put("g.TITULO", "= '" + tituloFamilia + "'");
                 filtros.put("g.COD_USUARIO_ADMIN_GRUPO", "=" + tokenUsuario);
-                filtros.put("g.FECHA_CREACION", "= '" + sdf.format(new Date()) + "'");
+                filtros.put("g.FECHA_CREACION", "= '" + Utils.parsearDateAString(new Date()) + "'");
                 if (!descripcionFamilia.isEmpty()) {
                     filtros.put("g.DESCRIPCION", "='" + descripcionFamilia + "'");
                 }

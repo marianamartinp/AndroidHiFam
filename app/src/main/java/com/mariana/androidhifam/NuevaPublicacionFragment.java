@@ -50,7 +50,6 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     private Uri uriImagen;
     private ExecutorService executorService;
     private Handler mainHandler;
-    private ServicioPublicacion servicioPublicacion;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -63,7 +62,6 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
-        servicioPublicacion = new ServicioPublicacion();
     }
 
     @Override
@@ -93,7 +91,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     public void cargarTituloAlbum(int idAlbum) {
         executorService.execute(() ->  {
             try {
-                String titulo = getString(R.string.tituloAlbumFormularioPublicacion, servicioPublicacion.cargarAlbum(idAlbum).getTitulo());
+                String titulo = getString(R.string.tituloAlbumFormularioPublicacion, cliente.leerAlbum(idAlbum).getTitulo());
                 mainHandler.post(() -> binding.tituloAlbum.setText(titulo));
             } catch (ExcepcionAlbumFamiliar e) {
                 mainHandler.post(() -> Toast.makeText(getContext(), "Error al cargar el título del álbum.", Toast.LENGTH_SHORT).show());
@@ -110,7 +108,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
                 try {
                     DatosArchivo datosArchivo = activity.getDriveServiceHelper().uploadImageFile(uriImagen, idGrupo, idAlbum);
                     Publicacion publicacion = construirPublicacion(datosArchivo, tokenUsuario);
-                    servicioPublicacion.insertarPublicacion(publicacion);
+                    cliente.insertarPublicacion(publicacion);
                     mainHandler.post(() -> {
                         Toast.makeText(requireContext(), "La publicación se ha creado correctamente.", Toast.LENGTH_SHORT).show();
                         navController.popBackStack();

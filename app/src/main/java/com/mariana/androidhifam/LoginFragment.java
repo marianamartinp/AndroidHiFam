@@ -1,6 +1,8 @@
 package com.mariana.androidhifam;
 
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -37,6 +39,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     private static final String PREFS_NAME = "UserPrefs";
     private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
     private static final String KEY_USER_TOKEN = "userToken";
+    private LoginFragmentArgs loginFragmentArgs;
     private FragmentLoginBinding binding;
     private MainActivity activity;
     private ExecutorService executorService;
@@ -44,10 +47,15 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     private CCAlbumFamiliar cliente;
     private NavController navController;
     private boolean mostrarContrasenya;
+    private boolean animar, usuarioLoggeado, vistaUtilizada;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            loginFragmentArgs = LoginFragmentArgs.fromBundle(getArguments());
+            animar = loginFragmentArgs.getAnimacionToolbar();
+        }
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -58,13 +66,22 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         navController = NavHostFragment.findNavController(this);
         binding = FragmentLoginBinding.inflate(inflater, container, false);
+        SharedPreferences sharedPreferences = activity.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        usuarioLoggeado = sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false);
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        activity = (MainActivity) getActivity();
+        if (animar && !vistaUtilizada) {
+            activity.mostrarToolbar(false, true);
+            vistaUtilizada = true;
+        }
+        else if (!usuarioLoggeado){
+            activity.mostrarToolbar(false, false);
+        }
+
         SpannableString content = new SpannableString(binding.linkRegistro.getText()) ;
         content.setSpan(new UnderlineSpan(), 0, content.length(), 0) ;
         binding.linkRegistro.setText(content);
@@ -78,7 +95,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         String usuarioOEmail = binding.editextUsuario.getText().toString().trim();
         String contrasenyaUsuario = binding.editextContrasenya.getText().toString();
         if (!usuarioOEmail.isEmpty() && !contrasenyaUsuario.isEmpty()) {
-            if (ValidadorEmail.esEmailValido(usuarioOEmail)) {
+            if (Utils.esEmailValido(usuarioOEmail)) {
                 esEmail = true;
             } else {
                 esEmail = false;
@@ -106,7 +123,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                         if (autenticacionLograda) {
                             String token = String.valueOf(idUsuario);
                             // Save login state and token
-                            SharedPreferences sharedPreferences = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                            SharedPreferences sharedPreferences = activity.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
                             SharedPreferences.Editor editor = sharedPreferences.edit();
                             editor.putBoolean(KEY_IS_LOGGED_IN, true);
                             editor.putString(KEY_USER_TOKEN, token);

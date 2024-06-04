@@ -1,5 +1,6 @@
 package com.mariana.androidhifam;
 import android.icu.text.SimpleDateFormat;
+import android.util.Patterns;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -69,5 +70,15 @@ public class Utils {
             System.err.println("ParseException was thrown: " + e.toString());
             return null;
         }
+    }
+
+    public static String parsearDateAString(Date fecha) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        sdf.setLenient(false);
+        return sdf.format(fecha);
+    }
+
+    public static boolean esEmailValido(CharSequence email) {
+        return email != null && Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 }
