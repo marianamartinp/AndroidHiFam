@@ -238,7 +238,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
                         return true;
                     }
                     else if (idMenuItem == R.id.verDetallesAlbum) {
-//                        navController.navigate(PublicacionesFragmentDirections.a(idGrupo));
+                        navController.navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToDetallesAlbumFragment(idAlbum));
                         return true;
                     }
                 }

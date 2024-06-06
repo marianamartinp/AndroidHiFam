@@ -123,9 +123,7 @@ public class DetallesGrupoFragment extends Fragment implements View.OnClickListe
                 Grupo grupo = new Grupo();
                 grupo.setFechaCreacion(fechaCreacion);
                 grupo.setTitulo(tituloFamilia);
-                if (!descripcionFamilia.isEmpty()) {
-                    grupo.setDescripcion(descripcionFamilia);
-                }
+                grupo.setDescripcion(descripcionFamilia);
                 Usuario usuarioAdmin = new Usuario();
                 usuarioAdmin.setCodUsuario(tokenUsuario);
                 grupo.setUsuarioAdminGrupo(usuarioAdmin);

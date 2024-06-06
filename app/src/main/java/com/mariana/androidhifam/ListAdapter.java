@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import pojosalbumfamiliar.Comentario;
+import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
@@ -31,7 +32,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
         void onItemClick(Object item, int position, int idButton);
     }
 
-    // RecyclerView recyclerView;
+    // Constructor genérico
     public ListAdapter(Context context, ArrayList<T> objetos, int item, OnItemClickListener listener) {
         this.objetos = objetos;
         this.context = context;
@@ -77,6 +78,10 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                 break;
             case ItemsListAdapter.ITEM_SOLICITUD_GRUPO:
                 itemLista = inflater.inflate(R.layout.item_solicitud_grupo, parent, false);
+                break;
+            case ItemsListAdapter.ITEM_GRUPO_USUARIO:
+                itemLista = inflater.inflate(R.layout.item_grupo_usuario, parent, false);
+                break;
         }
         return new ViewHolder(itemLista);
     }
@@ -93,7 +98,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView usuario, contenido, fecha;
+        public TextView usuario, contenido, fecha, titulo;
         public ImageView iconoEquis, iconoTick, iconoEliminar;
 
         public ViewHolder(View itemView) {
@@ -114,6 +119,10 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                     this.fecha = itemView.findViewById(R.id.fechaSolicitud);
                     this.iconoEquis = itemView.findViewById(R.id.iconoEquis);
                     this.iconoTick = itemView.findViewById(R.id.iconoTick);
+                    break;
+                case ItemsListAdapter.ITEM_GRUPO_USUARIO:
+                    this.titulo = itemView.findViewById(R.id.tituloGrupo);
+                    this.iconoEquis = itemView.findViewById(R.id.iconoEquis);
                     break;
             }
         }
@@ -186,6 +195,16 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                     this.iconoTick.setOnClickListener(new View.OnClickListener() {
                         @Override public void onClick(View v) {
                             listener.onItemClick(objeto, position, R.id.iconoTick);
+                        }
+                    });
+                    break;
+                case ItemsListAdapter.ITEM_GRUPO_USUARIO:
+                    Grupo grupo = (Grupo) objeto;
+                    this.titulo.setText(grupo.getTitulo());
+                    this.iconoEquis.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            listener.onItemClick(objeto, position, R.id.iconoEquis);
                         }
                     });
                     break;

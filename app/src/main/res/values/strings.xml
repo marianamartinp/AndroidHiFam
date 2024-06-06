@@ -10,15 +10,15 @@
     <string name="nuevaPublicacion">Nueva Publicación</string>
 
     <string name="btnLogin">Iniciar Sesión</string>
-    <string name="descripcionGrupo">Grupo</string>
+    <string name="descripcionGrupo">Familia</string>
     <string name="tituloComentarios">Comentarios</string>
     <string name="tituloGrupo">Titulo de la familia</string>
     <string name="tituloAlbum">Titulo del album</string>
 
     <!--    Drawer Layout-->
     <string name="miInfo">Mi Informacion</string>
-    <string name="crearGrupo">Crear nuevo grupo</string>
-    <string name="ingresarEnGrupo">Ingresar en grupo existente</string>
+    <string name="crearGrupo">Crear nueva familia</string>
+    <string name="ingresarEnGrupo">Ingresar en familia existente</string>
     <string name="cerrarSesion">Cerrar Sesión</string>
     <string name="drawerAbierto">Cajón de opciones abierto</string>
     <string name="drawerCerrado">Cajón de opciones cerrado</string>
@@ -34,12 +34,16 @@
     <string name="nuevaFamiliaAnyadirUsuario">Añade un nombre de usuario</string>
     <string name="nuevaFamiliaDatos">Datos generales:</string>
     <string name="nuevaFamiliaMiembros">Miembros de la familia:</string>
-    <string name="usuariosVacios">"No se han agregado usuarios al grupo."</string>
+    <string name="usuariosVacios">"No se han agregado usuarios a la familia."</string>
 
     <string name="nombreUsuario">"@Usuario"</string>
 
+    <!-- Menú añadir grupo -->
+    <string name="crearNuevoGrupo">Crear nueva familia</string>
+    <string name="ingresarEnGrupoExistente">Ingresar en familia existente</string>
+
     <!-- Modal ingreso en grupo -->
-    <string name="solicitarIngresoEnGrupo">Ingresa un código de grupo para mandar una solicitud.</string>
+    <string name="solicitarIngresoEnGrupo">Ingresa un código de familia para mandar una solicitud.</string>
     <string name="botonEnviarSolicitud">Enviar solicitud</string>
     <string name="campoCodigoDeGrupo">Escribe aquí tu código</string>
 
@@ -50,7 +54,7 @@
 
     <!-- Grupos recuperables -->
     <string name="tituloGruposRecuperables">Familas Eliminadas</string>
-    <string name="descripcionGruposRecuperables">Aquí podrás ver tus grupos eliminados.</string>
+    <string name="descripcionGruposRecuperables">Aquí podrás ver tus familias eliminadas.</string>
 
     <!-- Albumes recuperables -->
     <string name="tituloAlbumesRecuperables">Álbumes Eliminados</string>
@@ -68,27 +72,28 @@
 
 
     <!-- Items menús contextuales -->
-    <string name="verDetallesGrupo">Detalles del Grupo</string>
-    <string name="verIntegrantes">Integrantes del Grupo</string>
+    <string name="verDetallesGrupo">Detalles de la Familia</string>
+    <string name="verIntegrantes">Integrantes de la Familia</string>
     <string name="verAlbumesEliminados">Álbumes Eliminados</string>
-    <string name="eliminarGrupo">Eliminar Grupo</string>
+    <string name="eliminarGrupo">Eliminar Familia</string>
     <string name="eliminarAlbum">Eliminar Álbum</string>
-    <string name="recuperarGrupo">Recuperar grupo</string>
+    <string name="recuperarGrupo">Recuperar familia</string>
     <string name="recuperarAlbum">Recuperar álbum</string>
     <string name="verDetallesAlbum">Detalles del Álbum</string>
     <string name="verAlbum">Ver Álbum</string>
     <string name="verGrupo">Ver Grupo</string>
     <string name="eliminarPublicacion">Eliminar Publicación</string>
+    <string name="modificarPublicacion">Modificar Publicación</string>
 
     <!-- Formulario nuevo álbum -->
-    <string name="grupoAlbum">Grupo: tituloGrupo</string>
+    <string name="grupoAlbum">Familia: tituloFamilia</string>
     <string name="nuevoAlbumTitulo">Escribe aquí un título*</string>
     <string name="nuevoAlbumDescripcion">Escribe aquí una descripción</string>
     <string name="tipoAlbum">Tipo de Álbum:</string>
     <string name="warningAlbum">Serás admin de este álbum.</string>
     <string name="radioButtonAlbumIndividual">Álbum individual</string>
     <string name="radioButtonAlbumColectivo">Álbum colectivo</string>
-    <string name="tituloGrupoFormularioAlbum">Grupo: %1$s</string>
+    <string name="tituloGrupoFormularioAlbum">Familia: %1$s</string>
 
     <!-- Modal solicitudes de entrada a grupo -->
     <string name="solicitudesEntradaInfo">Aquí se mostrarán las solicitudes de entrada a tu familia.</string>
@@ -144,5 +149,26 @@
     <string name="codigoGrupo">Código:</string>
     <string name="fechaCreacionGrupo">Creación:</string>
     <string name="adminGrupo">Admin:</string>
+
+
+    <!-- Tab Detalles Usuario Fragment -->
+    <string name="nombreCompletoUsuario">Nombre completo:</string>
+    <string name="usuarioUsuario">Usuario:</string>
+    <string name="telefonoUsuario">Teléfono:</string>
+    <string name="fechaNacimientoUsuario">Nacimiento:</string>
+    <string name="emailUsuario">Correo electrónico:</string>
+    <string name="contrasenyaUsuario">Contraseña:</string>
+    <string name="botonModificarContrasenya">Modificar contraseña</string>
+    <string name="botonEliminarUsuario">Eliminar usuario</string>
+    <string name="usuarioPlaceholder">Tu usuario</string>
+    <string name="nacimientoPlaceholder">dd/MM/yyyy</string>
+
+    <!-- Tab Grupos Usuario Fragment -->
+    <string name="botonIngresarEnGrupo">Ingresar en familia</string>
+    <string name="misGruposTitulo">Familias:</string>
+
+    <!-- Usuario fragment -->
+    <string name="misGrupos">Mis familias</string>
+    <string name="miInformacion">Mi información</string>
 
 </resources>

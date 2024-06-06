@@ -160,23 +160,23 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
                     LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
                     filtros.put("u.USUARIO", "=" + "'" + usuario + "'");
                     filtros.put("u.FECHA_ELIMINACION", "is null");
-                    ArrayList<Usuario> usuariosInsertados = cliente.leerUsuarios(filtros, null);
+                    ArrayList<Usuario> usuariosCoincidentes = cliente.leerUsuarios(filtros, null);
                     int resultado;
-                    if (!usuariosInsertados.isEmpty() && !usuarioYaInsertado(usuariosInsertados.get(0).getCodUsuario()) && !Objects.equals(tokenUsuario, usuariosInsertados.get(0).getCodUsuario())) {
-                        resultado = cliente.insertarUsuarioIntegraGrupo(new UsuarioIntegraGrupo(usuariosInsertados.get(0), grupo));
+                    if (!usuariosCoincidentes.isEmpty() && !usuarioYaInsertado(usuariosCoincidentes.get(0).getCodUsuario()) && !Objects.equals(tokenUsuario, usuariosCoincidentes.get(0).getCodUsuario())) {
+                        resultado = cliente.insertarUsuarioIntegraGrupo(new UsuarioIntegraGrupo(usuariosCoincidentes.get(0), grupo));
                     } else {
                         resultado = 0;
                     }
                     mainHandler.post(() -> {
                         if (resultado > 0) {
-                            usuarios.add(usuariosInsertados.get(0));
+                            usuarios.add(usuariosCoincidentes.get(0));
                             adapter.notifyItemInserted(usuarios.size());
                             binding.usuarioFamilia.setText("");
                             mostrarTextoAlternativo();
-                        } else if (!usuarios.isEmpty() && Objects.equals(tokenUsuario, usuarios.get(0).getCodUsuario())) {
+                        } else if (!usuariosCoincidentes.isEmpty() && Objects.equals(tokenUsuario, usuariosCoincidentes.get(0).getCodUsuario())) {
                             Toast.makeText(requireContext(), "Tu usuario ya ha pertenece al grupo.", Toast.LENGTH_SHORT).show();
                         }
-                        else if (!usuarios.isEmpty() && usuarioYaInsertado(usuarios.get(0).getCodUsuario())) {
+                        else if (!usuariosCoincidentes.isEmpty() && usuarioYaInsertado(usuariosCoincidentes.get(0).getCodUsuario())) {
                             Toast.makeText(requireContext(), "El usuario ya pertenece a la familia.", Toast.LENGTH_SHORT).show();
                         }
                         else {

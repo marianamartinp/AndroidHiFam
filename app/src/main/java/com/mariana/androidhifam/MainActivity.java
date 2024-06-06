@@ -30,6 +30,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
@@ -52,6 +53,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -121,7 +123,10 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     R.id.publicacionFragment,
                     R.id.nuevaPublicacionFragment,
                     R.id.nuevoGrupoFragment,
-                    R.id.nuevoGrupoFragment
+                    R.id.nuevoGrupoFragment,
+                    R.id.detallesUsuarioFragment,
+                    R.id.detallesAlbumFragment,
+                    R.id.modificarPublicacion
             ).setOpenableLayout(binding.drawerLayout).build();
 
             //ToolBar
@@ -131,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 @Override
                 public void onDestinationChanged(@NonNull NavController navController, @NonNull NavDestination navDestination, @Nullable Bundle bundle) {
                     if (navDestination.getId() == R.id.registroFragment) {
-                        mostrarToolbar(false, false);
+                        mostrarToolbar(false, false, false);
                     }
                 }
             });
@@ -216,42 +221,41 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         binding.drawerLayout.closeDrawer(GravityCompat.START);
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                int id = item.getItemId();
-                if (id == R.id.cerrarSesionItem) {
-                    cerrarSesion();
+        if (habilitarInteraccion) {
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    int id = item.getItemId();
+                    if (id == R.id.cerrarSesionItem) {
+                        cerrarSesion();
+                    } else if (id == R.id.usuarioItem) {
+                        navController.navigate(R.id.detallesUsuarioFragment);
+                    } else if (id == R.id.gruposItem) {
+                        navController.navigate(R.id.gruposFragment);
+                    }
                 }
-                else if (id == R.id.usuarioItem) {
-                    navController.navigate(R.id.usuarioFragment);
-                }
-                else if (id == R.id.gruposItem) {
-                    navController.navigate(R.id.gruposFragment);
-                }
-            }
-        }, 500);
+            }, 500);
+        }
         return true;
     }
 
-    public void mostrarToolbar(boolean mostrar, boolean animar) {
+    public void mostrarToolbar(boolean mostrar, boolean animar, boolean sentidoAvanzar) {
         if (mostrar) {
             if (animar) {
                 Animation animacionEntrada = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
                 animacionEntrada.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
+                        // No precisado
                     }
-
                     @Override
                     public void onAnimationEnd(Animation animation) {
                         findViewById(R.id.toolbarContenido).setVisibility(View.VISIBLE);
                         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                     }
-
                     @Override
                     public void onAnimationRepeat(Animation animation) {
-
+                        // No precisado
                     }
                 });
                 binding.toolbar.startAnimation(animacionEntrada);
@@ -263,25 +267,27 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
         else {
             if (animar) {
-                Animation animacionSalida = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+                Animation animacionSalida;
+                if (sentidoAvanzar) {
+                    animacionSalida = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+                }
+                else {
+                    animacionSalida = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+                }
                 animacionSalida.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
-
+                        // No precisado
                     }
-
                     @Override
                     public void onAnimationEnd(Animation animation) {
-//                    binding.toolbar.setVisibility(View.GONE);
-//                    binding.toolbar.removeAllViews();
                         findViewById(R.id.toolbarContenido).setVisibility(View.INVISIBLE);
                         binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                         binding.toolbar.setNavigationIcon(null);
                     }
-
                     @Override
                     public void onAnimationRepeat(Animation animation) {
-
+                        // No precisado
                     }
                 });
                 binding.toolbar.startAnimation(animacionSalida);
@@ -313,6 +319,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     public CCAlbumFamiliar getCliente() {
         return cliente;
     }
+
     public void setHabilitarInteraccion(boolean habilitarInteraccion) {
         this.habilitarInteraccion = habilitarInteraccion;
         if (habilitarInteraccion) {
@@ -324,9 +331,11 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             binding.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         }
     }
+
     public boolean getHabilitarInteraccion() {
         return habilitarInteraccion;
     }
+
     public ArrayList<File> getImagenes() {
         getAllImagesFromAppDirectory();
         return imagenes;
@@ -373,9 +382,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         } catch (ExcepcionAlbumFamiliar e) {
             Toast.makeText(this, e.getMensajeUsuario(), Toast.LENGTH_SHORT).show();
         }
+        catch (Exception e) {
+            Toast.makeText(this, "Error al conectar con Google Drive.", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    public static void eliminarContenido(File directorio) {
+    private static void eliminarContenido(File directorio) {
         if (directorio.isDirectory()) {
             File[] files = directorio.listFiles();
             if (files != null) {
@@ -417,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return false;
     }
 
-    public boolean internetDisponible() {
+    private boolean internetDisponible() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
             NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
@@ -426,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return false;
     }
 
-    public static void setLocale(Activity activity, String languageCode) {
+    private static void setLocale(Activity activity, String languageCode) {
         Locale locale = new Locale(languageCode);
         Locale.setDefault(locale);
         Resources resources = activity.getResources();
@@ -445,7 +457,16 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
         editor.apply();
-        // Navigate to the LoginFragment
-        navController.navigate(GruposFragmentDirections.actionGruposFragmentToLoginFragment());
+        List<Fragment> listaFragments = getSupportFragmentManager().findFragmentById((R.id.navHostFragment)).getChildFragmentManager().getFragments();
+        Fragment fragmentActual = listaFragments.get(listaFragments.size() - 1);
+        if (fragmentActual instanceof GruposFragment) {
+            navController.navigate(GruposFragmentDirections.actionGruposFragmentToLoginFragment());
+        }
+        else if (fragmentActual instanceof DetallesUsuarioFragment) {
+            navController.navigate(DetallesUsuarioFragmentDirections.actionDetallesUsuarioFragmentToLoginFragment());
+        }
+        else {
+            navController.navigate(R.id.loginFragment);
+        }
     }
 }

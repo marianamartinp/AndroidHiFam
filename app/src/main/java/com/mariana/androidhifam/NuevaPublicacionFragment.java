@@ -116,6 +116,9 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
                 } catch (ExcepcionAlbumFamiliar e) {
                     mainHandler.post(() -> Toast.makeText(getContext(), e.getMensajeUsuario(), Toast.LENGTH_SHORT).show());
                 }
+                catch (Exception e) {
+                    Toast.makeText(getContext(), "Error al conectar con Google Drive.", Toast.LENGTH_SHORT).show();
+                }
             });
         }
         else {

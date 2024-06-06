@@ -1,19 +1,13 @@
 package com.mariana.androidhifam;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
-import android.text.InputFilter;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,29 +16,43 @@ import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentLoginBinding;
-import com.mariana.androidhifam.databinding.FragmentPrimeraPaginaRegistroBinding;
-import com.mariana.androidhifam.databinding.FragmentRegistroBinding;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 
+import com.mariana.androidhifam.databinding.FragmentTabDetallesGrupoBinding;
+import com.mariana.androidhifam.databinding.FragmentTabDetallesUsuarioBinding;
+
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+import pojosalbumfamiliar.Grupo;
+import pojosalbumfamiliar.Publicacion;
+import pojosalbumfamiliar.Usuario;
 
-public class PrimeraPaginaRegistroFragment extends Fragment {
+public class TabDetallesUsuarioFragment extends Fragment implements View.OnClickListener, ModalFragment.CustomModalInterface, TextWatcher{
 
-    private FragmentPrimeraPaginaRegistroBinding binding;
+    private FragmentTabDetallesUsuarioBinding binding;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
     private CCAlbumFamiliar cliente;
+    private DetallesUsuarioFragment parentFragment;
+    private Usuario usuario;
+    private Integer tokenUsuario, idGrupo;
+    private boolean camposModificados;
     private NavController navController;
-    private boolean validezNombre, validezUsuario, validezCorreo, validezTelefono, validezPrefijo = true;
-    private enum EnumValidacionEditText {
-        VALIDO, FORMATO_NO_VALIDO, ERROR, VACIO, EN_USO
-    }
+    private boolean validezNombre = true, validezUsuario = true, validezCorreo = true, validezTelefono = true, validezPrefijo = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,22 +61,23 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
         cliente = new CCAlbumFamiliar();
+        parentFragment = (DetallesUsuarioFragment) this.getParentFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         navController = NavHostFragment.findNavController(this);
-        binding = FragmentPrimeraPaginaRegistroBinding.inflate(inflater, container, false);
+        binding = FragmentTabDetallesUsuarioBinding.inflate(inflater, container, false);
+        tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        binding.editextUsuario.setFilters(new InputFilter[]{new FiltroNombreUsuario()});
         activarValidacion();
-        final View rootView = activity.findViewById(R.id.rootViewRegistro);
+        final View rootView = activity.findViewById(R.id.rootViewUsuario);
         // Registrar un OnGlobalLayoutListener para detectar cambios en la visibilidad del teclado
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -78,8 +87,133 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
                 }
             }
         });
+        binding.editextUsuario.addTextChangedListener(this);
+        binding.editextCorreoElectronico.addTextChangedListener(this);
+        binding.editextTelefono.addTextChangedListener(this);
+        binding.editextFechaNacimiento.addTextChangedListener(this);
+        binding.editextNombreCompleto.addTextChangedListener(this);
+        binding.botonCambiarContrasenya.setOnClickListener(this);
+        binding.botonEliminarUsuario.setOnClickListener(this);
+        binding.botonModificarUsuario.setOnClickListener(this);
+        cargarDetallesUsuario();
+    }
 
+    // Implementación de TextWatcher
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+       // No precisado
+    }
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        camposModificados = true;
+    }
+    @Override
+    public void afterTextChanged(Editable s) {
+        // No precisado
+    }
 
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonCambiarContrasenya) {
+            Toast.makeText(requireContext(), "Cambiar contraseña.", Toast.LENGTH_SHORT).show();
+        }
+        else if (id == R.id.botonEliminarUsuario) {
+            modalEliminarUsuario(tokenUsuario);
+        }
+        else if (id == R.id.botonModificarUsuario) {
+            modificarUsuario();
+        }
+    }
+
+    @Override
+    public void onPositiveClick(String idModal, Integer position, Integer id) {
+        if (activity.getHabilitarInteraccion()) {
+            switch (idModal) {
+                case "eliminarUsuario":
+                    if (null != usuario) {
+                        eliminarUsuario(usuario);
+                    }
+                    break;
+            }
+        }
+    }
+
+    public void modalEliminarUsuario(int id) {
+        ModalFragment modal = new ModalFragment("eliminarUsuario", null, id, this, "¿Desea eliminar su usuario?\nEsta acción será irreversible.", getString(R.string.btnEliminar), getString(R.string.btnCancelar));
+        modal.show(activity.getSupportFragmentManager(), "modalEliminarUsuario");
+    }
+
+    public void cargarDetallesUsuario() {
+        executorService.execute(() -> {
+            try {
+                usuario = cliente.leerUsuario(tokenUsuario);
+                mainHandler.post(() -> {
+                    if (null != usuario) {
+                        actualizarInterfaz(usuario);
+                    }
+                });
+            } catch (ExcepcionAlbumFamiliar e) {
+                mainHandler.post(() -> Toast.makeText(getContext(), "Se ha producido un error al cargar la información.", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    public void actualizarInterfaz(Usuario usuario) {
+        binding.editextUsuario.setText(usuario.getUsuario());
+        binding.editextFechaNacimiento.setText(Utils.parsearDateAString(usuario.getFechaNacimiento()));
+        int longitudPrefijo = Integer.parseInt(usuario.getTelefono().substring(0,1)) + 1;
+        binding.editextPrefijo.setText(usuario.getTelefono().substring(1,longitudPrefijo));
+        binding.editextTelefono.setText(usuario.getTelefono().substring(longitudPrefijo));
+        binding.editextNombreCompleto.setText(usuario.getNombre());
+        binding.editextCorreoElectronico.setText(usuario.getEmail());
+    }
+
+    public void eliminarUsuario(Usuario usuario) {
+        executorService.execute(() -> {
+            try {
+                cliente.eliminarUsuario(usuario.getCodUsuario());
+                mainHandler.post(() -> {
+                    Toast.makeText(requireContext(), "Usuario eliminado.", Toast.LENGTH_SHORT).show();
+                    activity.cerrarSesion();
+                });
+            } catch (ExcepcionAlbumFamiliar e) {
+                mainHandler.post(() -> Toast.makeText(requireContext(), "Error al eliminar la publicación.", Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
+    public void modificarUsuario() {
+        String nombre = binding.editextNombreCompleto.getText().toString().trim();
+        String nombreUsuario = binding.editextUsuario.getText().toString().trim();
+        String prefijo = binding.editextPrefijo.getText().toString().trim();
+        String telefono = binding.editextTelefono.getText().toString().trim();
+        String correo = binding.editextCorreoElectronico.getText().toString().trim();
+        String fechaNacimiento = binding.editextFechaNacimiento.getText().toString().trim();
+        if (camposModificados && validacionCompleta()) {
+
+            executorService.execute(() -> {
+                try {
+                    Usuario nuevoUsuario = new Usuario(null, nombre, nombreUsuario, correo, prefijo.length() + prefijo + telefono, usuario.getContrasenya(), Utils.parsearFechaADate(fechaNacimiento), null);
+                    int resultadoInsercion = cliente.modificarUsuario(usuario.getCodUsuario(), nuevoUsuario);
+                    mainHandler.post(() -> {
+                        if (resultadoInsercion > 0) {
+                            Toast.makeText(requireContext(), "Tu usuario se ha modificado correctamente.", Toast.LENGTH_SHORT).show();
+                            navController.popBackStack();
+                        }
+                    });
+                } catch (ExcepcionAlbumFamiliar e) {
+                    manejadorExcepcionAlbumFamiliar(e);
+                }
+            });
+        }
+        else if (!camposModificados && validacionCompleta()){
+            Toast.makeText(requireContext(), "Tu usuario se ha modificado correctamente.", Toast.LENGTH_SHORT).show();
+            navController.popBackStack();
+        }
+        else {
+            Toast.makeText(getContext(), "Completa la información para continuar.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void activarValidacion() {
@@ -96,41 +230,41 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
                                     filtros.put("u.EMAIL", "= '" + email + "'");
                                     int usuariosExistentes = cliente.leerUsuarios(filtros, null).size();
                                     mainHandler.post(() -> {
-                                        if (usuariosExistentes > 0) {
-                                            validarEditext(binding.editextCorreoElectronico, EnumValidacionEditText.EN_USO);
+                                        if (usuariosExistentes > 0 && !email.equals(usuario.getEmail())) {
+                                            validarEditext(binding.editextCorreoElectronico, Utils.EnumValidacionEditText.EN_USO);
                                         } else {
-                                            validarEditext(binding.editextCorreoElectronico, EnumValidacionEditText.VALIDO);
+                                            validarEditext(binding.editextCorreoElectronico, Utils.EnumValidacionEditText.VALIDO);
                                         }
                                     });
                                 }
                                 catch (ExcepcionAlbumFamiliar e) {
                                     mainHandler.post(() -> {
-                                        validarEditext(binding.editextCorreoElectronico, EnumValidacionEditText.ERROR);
+                                        validarEditext(binding.editextCorreoElectronico, Utils.EnumValidacionEditText.ERROR);
                                     });
                                 }
                             });
                         }
                         else {
-                            validarEditext(binding.editextCorreoElectronico, EnumValidacionEditText.FORMATO_NO_VALIDO);
+                            validarEditext(binding.editextCorreoElectronico, Utils.EnumValidacionEditText.FORMATO_NO_VALIDO);
                         }
                     }
                     else {
-                        validarEditext(binding.editextCorreoElectronico, EnumValidacionEditText.VACIO);
+                        validarEditext(binding.editextCorreoElectronico, Utils.EnumValidacionEditText.VACIO);
                     }
                 }
             }
         });
 
-        binding.editextNombre.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        binding.editextNombreCompleto.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    String nombre = binding.editextNombre.getText().toString().trim();
+                    String nombre = binding.editextNombreCompleto.getText().toString().trim();
                     if (nombre.isEmpty()) {
-                        validarEditext(binding.editextNombre, EnumValidacionEditText.VACIO);
+                        validarEditext(binding.editextNombreCompleto, Utils.EnumValidacionEditText.VACIO);
                     }
                     else {
-                        validarEditext(binding.editextNombre, EnumValidacionEditText.VALIDO);
+                        validarEditext(binding.editextNombreCompleto, Utils.EnumValidacionEditText.VALIDO);
                     }
                 }
             }
@@ -140,30 +274,30 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    String usuario = binding.editextUsuario.getText().toString().trim();
-                    if (!usuario.isEmpty()) {
+                    String usuarioEditext = binding.editextUsuario.getText().toString().trim();
+                    if (!usuarioEditext.isEmpty()) {
                         executorService.execute(() -> {
                             try {
                                 LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
-                                filtros.put("u.USUARIO", "= '" + usuario + "'");
+                                filtros.put("u.USUARIO", "= '" + usuarioEditext + "'");
                                 int usuariosExistentes = cliente.leerUsuarios(filtros, null).size();
                                 mainHandler.post(() -> {
-                                    if (usuariosExistentes > 0) {
-                                        validarEditext(binding.editextUsuario, EnumValidacionEditText.EN_USO);
+                                    if (usuariosExistentes > 0 && !usuarioEditext.equals(usuario.getUsuario())) {
+                                        validarEditext(binding.editextUsuario, Utils.EnumValidacionEditText.EN_USO);
                                     }
                                     else {
-                                        validarEditext(binding.editextUsuario, EnumValidacionEditText.VALIDO);
+                                        validarEditext(binding.editextUsuario, Utils.EnumValidacionEditText.VALIDO);
                                     }
                                 });
                             } catch (ExcepcionAlbumFamiliar e) {
                                 mainHandler.post(() -> {
-                                    validarEditext(binding.editextUsuario, EnumValidacionEditText.ERROR);
+                                    validarEditext(binding.editextUsuario, Utils.EnumValidacionEditText.ERROR);
                                 });
                             }
                         });
                     }
                     else {
-                        validarEditext(binding.editextUsuario, EnumValidacionEditText.VACIO);
+                        validarEditext(binding.editextUsuario, Utils.EnumValidacionEditText.VACIO);
                     }
                 }
             }
@@ -175,9 +309,9 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
                 if (!hasFocus) {
                     String prefijo = binding.editextPrefijo.getText().toString().trim();
                     if (!prefijo.isEmpty()) {
-                        validarEditext(binding.editextPrefijo, EnumValidacionEditText.VALIDO);
+                        validarEditext(binding.editextPrefijo, Utils.EnumValidacionEditText.VALIDO);
                     } else {
-                        validarEditext(binding.editextPrefijo, EnumValidacionEditText.VACIO);
+                        validarEditext(binding.editextPrefijo, Utils.EnumValidacionEditText.VACIO);
                     }
                 }
             }
@@ -198,31 +332,31 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
                                     filtros.put("u.TELEFONO", "= '" + prefijoTelefono.length() + telefonoProcesado + "'");
                                     int usuariosExistentes = cliente.leerUsuarios(filtros, null).size();
                                     mainHandler.post(() -> {
-                                        if (usuariosExistentes > 0) {
-                                            validarEditext(binding.editextTelefono, EnumValidacionEditText.EN_USO);
+                                        if (usuariosExistentes > 0 && !(prefijoTelefono.length() + telefonoProcesado).equals(usuario.getTelefono())) {
+                                            validarEditext(binding.editextTelefono, Utils.EnumValidacionEditText.EN_USO);
                                         } else {
-                                            validarEditext(binding.editextTelefono, EnumValidacionEditText.VALIDO);
+                                            validarEditext(binding.editextTelefono, Utils.EnumValidacionEditText.VALIDO);
                                         }
                                     });
                                 } catch (ExcepcionAlbumFamiliar e) {
                                     mainHandler.post(() -> {
-                                        validarEditext(binding.editextTelefono, EnumValidacionEditText.ERROR);
+                                        validarEditext(binding.editextTelefono, Utils.EnumValidacionEditText.ERROR);
                                     });
                                 }
                             });
                         }
                         else {
-                            validarEditext(binding.editextTelefono, EnumValidacionEditText.FORMATO_NO_VALIDO);
+                            validarEditext(binding.editextTelefono, Utils.EnumValidacionEditText.FORMATO_NO_VALIDO);
                         }
                     } else {
-                        validarEditext(binding.editextTelefono, EnumValidacionEditText.VACIO);
+                        validarEditext(binding.editextTelefono, Utils.EnumValidacionEditText.VACIO);
                     }
                 }
             }
         });
     }
 
-    private void validarEditext(EditText editext, EnumValidacionEditText valorValidacion) {
+    private void validarEditext(EditText editext, Utils.EnumValidacionEditText valorValidacion) {
         int id = editext.getId();
 
         switch (valorValidacion) {
@@ -327,31 +461,6 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
         }
     }
 
-    public boolean validacionCompleta() {
-        if (validezNombre && validezCorreo && validezUsuario && validezTelefono && validezPrefijo) {
-            return true;
-        }
-        return false;
-    }
-
-    public String getEditextNombre() {
-        return binding.editextNombre.getText().toString().trim();
-    }
-
-    public String getEditextUsuario() {
-        return binding.editextUsuario.getText().toString().trim();
-    }
-
-    public String getEditextCorreo() {
-        return binding.editextCorreoElectronico.getText().toString().trim();
-    }
-
-    public String getEditextTelefonoConPrefijo() {
-        String numeroTelefono = binding.editextTelefono.getText().toString().trim();
-        String prefijoTelefono = binding.editextPrefijo.getText().toString().trim();
-        return Utils.limpiarNumeroDeTelefono(prefijoTelefono.length() + prefijoTelefono + numeroTelefono);
-    }
-
     private boolean tecladoEscondido(View rootView) {
         Rect r = new Rect();
         rootView.getWindowVisibleDisplayFrame(r);
@@ -364,10 +473,23 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
 
     private void eliminarFocusEditext() {
         // Quitar el enfoque de los campos de entrada
-        binding.editextNombre.clearFocus();
+        binding.editextNombreCompleto.clearFocus();
         binding.editextUsuario.clearFocus();
         binding.editextCorreoElectronico.clearFocus();
         binding.editextPrefijo.clearFocus();
         binding.editextTelefono.clearFocus();
+    }
+
+    public boolean validacionCompleta() {
+        if (validezNombre && validezCorreo && validezUsuario && validezTelefono && validezPrefijo) {
+            return true;
+        }
+        return false;
+    }
+
+    public void manejadorExcepcionAlbumFamiliar(ExcepcionAlbumFamiliar e) {
+        String mensaje;
+        mensaje = e.getMensajeUsuario();
+        mainHandler.post(() -> Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show());
     }
 }

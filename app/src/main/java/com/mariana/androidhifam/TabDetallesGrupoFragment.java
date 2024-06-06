@@ -36,7 +36,7 @@ import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
 
-public class TabDetallesGrupoFragment extends Fragment {
+public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
 
     private FragmentTabDetallesGrupoBinding binding;
     private MainActivity activity;
@@ -64,33 +64,8 @@ public class TabDetallesGrupoFragment extends Fragment {
         binding = FragmentTabDetallesGrupoBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         idGrupo = parentFragment.getGrupoId();
-        binding.editextDescripcionFamilia.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                camposModificados = true;
-            }
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        binding.editextTituloFamilia.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                camposModificados = true;
-            }
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
+        binding.editextDescripcionFamilia.addTextChangedListener(this);
+        binding.editextTituloFamilia.addTextChangedListener(this);
         return binding.getRoot();
     }
 
@@ -100,13 +75,25 @@ public class TabDetallesGrupoFragment extends Fragment {
         cargarDetallesGrupo();
     }
 
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+    }
+    @Override
+    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        camposModificados = true;
+    }
+    @Override
+    public void afterTextChanged(Editable s) {
+
+    }
+
     public void cargarDetallesGrupo() {
         executorService.execute(() -> {
             try {
                 grupo = cliente.leerGrupo(idGrupo);
                 mainHandler.post(() -> {
-                    procesarPermisosEditext(tokenUsuario, grupo);
                     if (null != grupo) {
+                        revisarPermisos(tokenUsuario, grupo);
                         actualizarInterfaz(grupo);
                     }
                 });
@@ -124,12 +111,14 @@ public class TabDetallesGrupoFragment extends Fragment {
         binding.editextDescripcionFamilia.setText(grupo.getDescripcion());
     }
 
-    public void procesarPermisosEditext(Integer tokenUsuario, Grupo grupo) {
+    public void revisarPermisos(Integer tokenUsuario, Grupo grupo) {
         if (Objects.equals(tokenUsuario, grupo.getUsuarioAdminGrupo().getCodUsuario())) {
             binding.editextTituloFamilia.setEnabled(true);
             binding.editextTituloFamilia.setInputType(InputType.TYPE_CLASS_TEXT);
+            binding.editextTituloFamilia.setTextColor(getResources().getColor(R.color.darkGrey, activity.getTheme()));
             binding.editextDescripcionFamilia.setEnabled(true);
             binding.editextDescripcionFamilia.setInputType(InputType.TYPE_CLASS_TEXT);
+            binding.editextDescripcionFamilia.setTextColor(getResources().getColor(R.color.darkGrey, activity.getTheme()));
         }
         else {
             binding.editextTituloFamilia.setEnabled(false);

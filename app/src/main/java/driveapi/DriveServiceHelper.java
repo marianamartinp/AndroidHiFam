@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
@@ -46,7 +47,7 @@ public class DriveServiceHelper {
         this.context = context;
     }
 
-    public void listFiles(int idGrupo) {
+    public void listFiles(int idGrupo) throws RuntimeException {
         String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
         String query = "'" + folderId + "' in parents and trashed = false";
         FileList result = null;
@@ -58,9 +59,6 @@ public class DriveServiceHelper {
                     .execute();
             for (File file : result.getFiles()) {
                 Log.e("hey", "Found file: "+file.getName()+file.getId() + "link     " + file.getWebViewLink());
-
-//                Uri contentUri = Uri.parse("content://com.mariana.myapplication/files/" + file.getId());
-//                Log.i("uri", contentUri.toString());
                 if (archivoNecesario(file.getName(), idGrupo)) {
                     downloadFileToAppDataDirectory(file.getId(), file.getName());
                 }
@@ -71,7 +69,7 @@ public class DriveServiceHelper {
     }
 
 
-    public DatosArchivo uploadImageFile(Uri fileUri, int idGrupo, int idAlbum) {
+    public DatosArchivo uploadImageFile(Uri fileUri, int idGrupo, int idAlbum) throws RuntimeException {
         String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
         File googleFile = null;
         try {
@@ -159,13 +157,12 @@ public class DriveServiceHelper {
             is.close();
 
         } catch (IOException e) {
-            Log.e("Error", "Failed to download file: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
 
-    private Task<Void> downloadFileUsingMediaStore(Drive driveService, String fileId, String fileName) {
+    private Task<Void> downloadFileUsingMediaStore(Drive driveService, String fileId, String fileName) throws RuntimeException {
         TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
         mExecutor.execute(() -> {
             // Define the ContentValues with metadata about the file
@@ -264,51 +261,4 @@ public class DriveServiceHelper {
         return sb.toString();
     }
 
-    // Métodos auxiliares
-
-//    private void downloadFile(Drive driveService, String fileId, String fileName) {
-//        try (InputStream is = driveService.files().get(fileId).executeMediaAsInputStream();
-//            // OutputStream os = new FileOutputStream(new java.io.File(context.getFilesDir(), fileName))) {
-//            OutputStream os = Files.newOutputStream(new java.io.File(context.getFilesDir(), fileName).toPath())) {
-//            byte[] buffer = new byte[1024];
-//            int read;
-//            while ((read = is.read(buffer)) != -1) {
-//                os.write(buffer, 0, read);
-//            }
-//        } catch (Exception e) {
-//            Log.e("Error", "Failed to download file: " + e.getMessage());
-//        }
-//    }
-
-
-
-
-
-
-//    public Task<Void> downloadFile(Context context, String fileId, String fileName) {
-//        TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
-//        mExecutor.execute(() -> {
-//            Uri uri = getOutputUri(fileName);
-//            requestWriteAccess(uri);
-//            try {
-//                try (InputStream is = driveService.files().get(fileId).executeMediaAsInputStream();
-//                     OutputStream os = context.getContentResolver().openOutputStream(uri)) {
-//                    byte[] buffer = new byte[1024];
-//                    int bytesRead;
-//                    while ((bytesRead = is.read(buffer)) != -1) {
-//                        os.write(buffer, 0, bytesRead);
-//                    }
-//                }
-//                taskCompletionSource.setResult(null);
-//            } catch (Exception e) {
-//                taskCompletionSource.setException(e);
-//            }
-//        });
-//        return taskCompletionSource.getTask();
-//    }
-
-
-//    public interface PermissionResultListener {
-//        void onRequestPermissionsResult(int requestCode, int resultCode);
-//    }
 }

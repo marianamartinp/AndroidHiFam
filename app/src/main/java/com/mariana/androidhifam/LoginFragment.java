@@ -46,8 +46,10 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     private Handler mainHandler;
     private CCAlbumFamiliar cliente;
     private NavController navController;
-    private boolean mostrarContrasenya;
-    private boolean animar, usuarioLoggeado, vistaUtilizada;
+    private boolean mostrarContrasenya, usuarioLoggeado, vistaUtilizada;
+    private int animar;
+    private static int ANIMACION_AVANZAR = 1;
+    private static int ANIMACION_RETROCEDER = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,12 +76,16 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (animar && !vistaUtilizada) {
-            activity.mostrarToolbar(false, true);
+        if (animar == ANIMACION_RETROCEDER && !vistaUtilizada) {
+            activity.mostrarToolbar(false, true, false);
+            vistaUtilizada = true;
+        }
+        else if (animar == ANIMACION_AVANZAR) {
+            activity.mostrarToolbar(false, true, true);
             vistaUtilizada = true;
         }
         else if (!usuarioLoggeado){
-            activity.mostrarToolbar(false, false);
+            activity.mostrarToolbar(false, false, false);
         }
 
         SpannableString content = new SpannableString(binding.linkRegistro.getText()) ;

@@ -32,8 +32,8 @@
         </action>
         <argument
             android:name="animacionToolbar"
-            app:argType="boolean"
-            android:defaultValue="false" />
+            app:argType="integer"
+            android:defaultValue="0" />
     </fragment>
     <fragment
         android:id="@+id/registroFragment"
@@ -91,12 +91,19 @@
             app:popExitAnim="@anim/slide_out_right">
             <argument
                 android:name="animacionToolbar"
-                android:defaultValue="true" />
+                android:defaultValue="2" />
         </action>
         <argument
             android:name="animacionToolbar"
             app:argType="boolean"
             android:defaultValue="false" />
+        <action
+            android:id="@+id/action_gruposFragment_to_detallesUsuarioFragment"
+            app:destination="@id/detallesUsuarioFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/albumesFragment"
@@ -176,6 +183,13 @@
             android:name="desdePublicacionesLista"
             app:argType="boolean"
             android:defaultValue="false" />
+        <action
+            android:id="@+id/action_publicacionesFragment_to_detallesAlbumFragment"
+            app:destination="@id/detallesAlbumFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
         android:id="@+id/publicacionFragment"
@@ -201,12 +215,23 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"
             app:popUpTo="@id/gruposFragment"/>
+        <action
+            android:id="@+id/action_publicacionFragment_to_detallesAlbumFragment"
+            app:destination="@id/detallesAlbumFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:popUpTo="@id/albumesFragment"/>
+        <action
+            android:id="@+id/action_publicacionFragment_to_modificarPublicacionFragment"
+            app:destination="@id/modificarPublicacionFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+
     </fragment>
-    <fragment
-        android:id="@+id/usuarioFragment"
-        android:name="com.mariana.androidhifam.UsuarioFragment"
-        android:label="fragment_usuario"
-        tools:layout="@layout/fragment_usuario" />
     <fragment
         android:id="@+id/nuevoGrupoFragment"
         android:name="com.mariana.androidhifam.NuevoGrupoFragment"
@@ -344,6 +369,86 @@
         tools:layout="@layout/fragment_albumes_recuperables" >
         <argument
             android:name="idGrupo"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/detallesAlbumFragment"
+        android:name="com.mariana.androidhifam.DetallesAlbumFragment"
+        android:label="fragment_detalles_album"
+        tools:layout="@layout/fragment_detalles_album" >
+        <argument
+            android:name="idAlbum"
+            app:argType="integer" />
+    </fragment>
+    <fragment
+        android:id="@+id/detallesUsuarioFragment"
+        android:name="com.mariana.androidhifam.DetallesUsuarioFragment"
+        android:label="fragment_usuario"
+        tools:layout="@layout/fragment_detalles_usuario" >
+        <action
+            android:id="@+id/action_detallesUsuarioFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right">
+            <argument
+                android:name="animacionToolbar"
+                android:defaultValue="1" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/tabDetallesUsuarioFragment"
+        android:name="com.mariana.androidhifam.TabDetallesUsuarioFragment"
+        android:label="fragment_tab_detalles_usuario"
+        tools:layout="@layout/fragment_tab_detalles_usuario" />
+    <fragment
+        android:id="@+id/tabGruposUsuarioFragment"
+        android:name="com.mariana.androidhifam.TabGruposUsuarioFragment"
+        android:label="fragment_tab_grupos_usuario"
+        tools:layout="@layout/fragment_tab_grupos_usuario" >
+        <action
+            android:id="@+id/action_tabGruposUsuarioFragment_to_ingresoGrupoFragment"
+            app:destination="@id/ingresoGrupoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/menuFragment"
+        android:name="com.mariana.androidhifam.MenuFragment"
+        android:label="fragment_menu"
+        tools:layout="@layout/fragment_menu" />
+    <fragment
+        android:id="@+id/primeraPaginaRegistroFragment"
+        android:name="com.mariana.androidhifam.PrimeraPaginaRegistroFragment"
+        android:label="fragment_primera_pagina_registro"
+        tools:layout="@layout/fragment_primera_pagina_registro" />
+    <fragment
+        android:id="@+id/segundaPaginaRegistroFragment"
+        android:name="com.mariana.androidhifam.SegundaPaginaRegistroFragment"
+        android:label="fragment_segunda_pagina_registro"
+        tools:layout="@layout/fragment_segunda_pagina_registro" />
+    <fragment
+        android:id="@+id/tabDetallesGrupoFragment"
+        android:name="com.mariana.androidhifam.TabDetallesGrupoFragment"
+        android:label="fragment_tab_detalles_grupo"
+        tools:layout="@layout/fragment_tab_detalles_grupo" />
+    <fragment
+        android:id="@+id/tabMiembrosGrupoFragment"
+        android:name="com.mariana.androidhifam.TabMiembrosGrupoFragment"
+        android:label="fragment_tab_miembros_grupo"
+        tools:layout="@layout/fragment_tab_miembros_grupo" />
+    <fragment
+        android:id="@+id/modificarPublicacionFragment"
+        android:name="com.mariana.androidhifam.ModificarPublicacionFragment"
+        android:label="fragment_modificar_publicacion"
+        tools:layout="@layout/fragment_modificar_publicacion" >
+        <argument
+            android:name="idPublicacion"
+            app:argType="integer" />
+        <argument
+            android:name="idGrupo"
+            app:argType="integer" />
+        <argument
+            android:name="idAlbum"
             app:argType="integer" />
     </fragment>
 </navigation>

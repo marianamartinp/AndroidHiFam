@@ -1,6 +1,7 @@
 package com.mariana.androidhifam;
 import android.icu.text.SimpleDateFormat;
 import android.util.Patterns;
+import android.widget.Toast;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -13,7 +14,13 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+
 public class Utils {
+
+    public enum EnumValidacionEditText {
+        VALIDO, FORMATO_NO_VALIDO, ERROR, VACIO, EN_USO
+    }
 
     public static String hashearContrasenya(String contrasenyaUsuario) {
         return BCrypt.hashpw(contrasenyaUsuario, BCrypt.gensalt());

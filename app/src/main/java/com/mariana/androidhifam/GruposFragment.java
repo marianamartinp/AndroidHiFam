@@ -82,10 +82,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (animar) {
-            activity.mostrarToolbar(true, true);
+            activity.mostrarToolbar(true, true, false);
         }
         else {
-            activity.mostrarToolbar(true, false);
+            activity.mostrarToolbar(true, false, false);
         }
         activity.setRefreshLayout(this);
         saludoUsuario = activity.findViewById(R.id.saludoUsuario);

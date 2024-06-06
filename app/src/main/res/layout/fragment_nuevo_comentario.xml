@@ -15,8 +15,8 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:src="@drawable/chevronleftgrey"
-                app:layout_constraintTop_toTopOf="@id/textViewIngresoEnGrupo"
-                app:layout_constraintBottom_toBottomOf="@id/textViewIngresoEnGrupo"
+                app:layout_constraintTop_toTopOf="@id/textViewComentario"
+                app:layout_constraintBottom_toBottomOf="@id/textViewComentario"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintDimensionRatio="W,1:1"
                 android:layout_marginStart="10dp"/>

@@ -162,7 +162,7 @@ public class RegistroFragment extends Fragment implements View.OnClickListener {
                         }
                     });
                 } catch (ExcepcionAlbumFamiliar e) {
-                    throw new RuntimeException(e);
+                    manejadorExcepcionAlbumFamiliar(e);
                 }
             });
 
@@ -170,6 +170,12 @@ public class RegistroFragment extends Fragment implements View.OnClickListener {
         else {
             Toast.makeText(getContext(), "Completa la información para continuar.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void manejadorExcepcionAlbumFamiliar(ExcepcionAlbumFamiliar e) {
+        String mensaje;
+        mensaje = e.getMensajeUsuario();
+        mainHandler.post(() -> Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show());
     }
 
 }

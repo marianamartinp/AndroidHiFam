@@ -91,12 +91,12 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         binding.botonNuevoComentario.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
         if (vistaCreada) {
-            cargarFramePublicacion();
+            executorService.execute(() -> cargarPublicacion(idPublicacion, null));
             cargarListaComentarios();
         }
         else {
             cargarAlbum(idAlbum);
-            cargarVistaPublicacion(idPublicacion, null);
+            cargarVistaPublicacion(idPublicacion, idAlbum, null);
         }
     }
 
@@ -138,7 +138,9 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
             mainHandler.post(this::errorAlCargarInterfaz);
         }
         finally {
-            latch.countDown();
+            if (null != latch) {
+                latch.countDown();
+            }
         }
     }
 
@@ -196,13 +198,13 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         }
     }
 
-    public void cargarVistaPublicacion(Integer idPublicacion, SwipeRefreshLayout refreshLayout) {
+    public void cargarVistaPublicacion(Integer idPublicacion, Integer idAlbum, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
         CountDownLatch latch = new CountDownLatch(3);
         binding.cardView.startAnimation(parpadeo);
         executorService.execute(() -> cargarPublicacion(idPublicacion, latch));
-        executorService.execute(() -> cargarTituloAlbum(publicacion.getPublicacionEnAlbum(), latch));
+        executorService.execute(() -> cargarTituloAlbum(idAlbum, latch));
         executorService.execute(() -> cargarComentarios(idPublicacion, latch));
         executorService.execute(() -> {
             try {
@@ -220,18 +222,20 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
                 mainHandler.post(this::errorAlCargarInterfaz);
             }
         });
-
     }
 
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater().inflate(R.menu.menu_opciones_publicacion, popup.getMenu());
         if (null != publicacion && null != album) {
-            if (Objects.equals(tokenUsuario, publicacion.getUsuarioCreaPublicacion().getCodUsuario()) ||
-                Objects.equals(tokenUsuario, album.getGrupoCreaAlbum().getUsuarioAdminGrupo().getCodUsuario()) ||
+            if (Objects.equals(tokenUsuario, album.getGrupoCreaAlbum().getUsuarioAdminGrupo().getCodUsuario()) ||
                 Objects.equals(tokenUsuario, album.getUsuarioAdminAlbum().getCodUsuario())) {
                 popup.getMenu().clear();
                 popup.getMenuInflater().inflate(R.menu.menu_opciones_publicacion_admin, popup.getMenu());
+            }
+            else if (Objects.equals(tokenUsuario, publicacion.getUsuarioCreaPublicacion().getCodUsuario())) {
+                popup.getMenu().clear();
+                popup.getMenuInflater().inflate(R.menu.menu_opciones_publicacion_creador, popup.getMenu());
             }
         }
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -246,6 +250,9 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
                             navController.navigate(PublicacionFragmentDirections.actionPublicacionFragmentToDetallesGrupoFragment(idGrupo));
                             return true;
                         }
+                        else if (idMenuItem == R.id.modificarPublicacion) {
+                            navController.navigate(PublicacionFragmentDirections.actionPublicacionFragmentToModificarPublicacionFragment(idPublicacion, idGrupo, idAlbum));
+                        }
                     }
                 }
                 return true;
@@ -253,10 +260,6 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         });
         popup.show();
     }
-//
-//    public void actualizarAdapter(){
-//        adapter.notifyDataSetChanged();
-//    }
 
     @Override
     public void onClick(View v) {
@@ -274,7 +277,7 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
     @Override
     public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
         if (activity.getHabilitarInteraccion()) {
-            cargarVistaPublicacion(idPublicacion, refreshLayout);
+            cargarVistaPublicacion(idPublicacion, idAlbum, refreshLayout);
         }
         else {
             refreshLayout.setRefreshing(false);
@@ -313,6 +316,9 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
             try {
                 activity.getDriveServiceHelper().deleteFile(publicacion.getArchivo().getRuta());
             }
+            catch (Exception e) {
+                Toast.makeText(getContext(), "Error al conectar con Google Drive.", Toast.LENGTH_SHORT).show();
+            }
             finally {
                 latch.countDown();
             }
@@ -320,15 +326,22 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
         executorService.execute(() -> {
             try {
                 cliente.eliminarPublicacion(publicacion.getCodPublicacion());
-                mainHandler.post(() -> {
-                    navController.popBackStack();
-                    Toast.makeText(requireContext(), "Publicación eliminada.", Toast.LENGTH_SHORT).show();
-                });
             } catch (ExcepcionAlbumFamiliar e) {
                 mainHandler.post(() -> Toast.makeText(requireContext(), "Error al eliminar la publicación.", Toast.LENGTH_SHORT).show());
             }
             finally {
                 latch.countDown();
+            }
+        });
+        executorService.execute(() -> {
+            try {
+                latch.await();
+                mainHandler.post(() -> {
+                    navController.popBackStack();
+                    Toast.makeText(requireContext(), "Publicación eliminada.", Toast.LENGTH_SHORT).show();
+                });
+            } catch (InterruptedException e) {
+                mainHandler.post(() -> Toast.makeText(requireContext(), "Error al eliminar la publicación.", Toast.LENGTH_SHORT).show());
             }
         });
     }

@@ -39,6 +39,7 @@
             android:textSize="14sp"
             android:maxLines="2"
             android:inputType="none"
+            android:enabled="false"
             android:textAlignment="center"
             android:textColor="@color/mediumGrey"
             app:layout_constraintHorizontal_weight="2"

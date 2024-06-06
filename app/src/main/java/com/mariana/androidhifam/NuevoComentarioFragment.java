@@ -65,6 +65,7 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());
         binding.botonEnviarComentario.setOnClickListener(this);
+        binding.botonAtras.setOnClickListener(this);
         return builder.create();
     }
 
@@ -79,6 +80,9 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
         int id = v.getId();
         if (id == R.id.botonEnviarComentario) {
             solicitarEntradaEnGrupo();
+        }
+        else if (id == R.id.botonAtras) {
+            dismiss();
         }
     }
 
