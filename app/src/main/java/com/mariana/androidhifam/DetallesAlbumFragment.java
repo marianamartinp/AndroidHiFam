@@ -18,7 +18,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.mariana.androidhifam.databinding.FragmentDetallesAlbumBinding;
-import com.mariana.androidhifam.databinding.FragmentNuevoAlbumBinding;
 
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -27,11 +26,10 @@ import java.util.concurrent.Executors;
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.Usuario;
+import utils.Utils;
 
 public class DetallesAlbumFragment extends Fragment implements View.OnClickListener {
-    private DetallesAlbumFragmentArgs detallesAlbumFragmentArgs;
+    private @NonNull DetallesAlbumFragmentArgs detallesAlbumFragmentArgs;
     private @NonNull FragmentDetallesAlbumBinding binding;
     private CCAlbumFamiliar cliente;
     private MainActivity activity;
@@ -41,9 +39,11 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
     private Integer idAlbum, tokenUsuario;
     private Album album;
 
+    // Método llamado al crear la instancia del Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtiene los argumentos pasados al Fragment
         if (getArguments() != null) {
             detallesAlbumFragmentArgs = DetallesAlbumFragmentArgs.fromBundle(getArguments());
             idAlbum = detallesAlbumFragmentArgs.getIdAlbum();
@@ -53,8 +53,11 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método llamado para crear la vista del Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        activity.findViewById(R.id.refreshLayout).setEnabled(false);
+        // Infla el layout del Fragment y obtiene una instancia del binding
         binding = FragmentDetallesAlbumBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
@@ -62,13 +65,36 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
         return binding.getRoot();
     }
 
+    // Método llamado cuando la vista ha sido creada
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Carga los detalles del álbum
         cargarAlbum(idAlbum);
+        // Configura el listener para el botón de atrás
         binding.botonAtras.setOnClickListener(this);
     }
 
+    // Método llamado al destruir la vista del Fragment
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // Método para manejar los eventos de clic en los botones
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonModificarAlbum) {
+            modificarAlbum();
+        }
+        else if (id == R.id.botonAtras) {
+            findNavController(v).popBackStack();
+        }
+    }
+
+    // Método para cargar los detalles del álbum
     public void cargarAlbum(Integer idAlbum) {
         executorService.execute(() -> {
             try {
@@ -85,6 +111,7 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
         });
     }
 
+    // Método para actualizar la interfaz con los detalles del álbum
     public void actualizarInterfaz() {
         binding.tituloAlbum.setText(album.getTitulo());
         binding.descripcionAlbum.setText(album.getDescripcion());
@@ -99,9 +126,10 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Método para revisar los permisos del usuario sobre el álbum y habilitar o deshabilitar la edición
     public void revisarPermisos(Integer tokenUsuario, Album album) {
-        if (Objects.equals(tokenUsuario, album.getUsuarioAdminAlbum().getCodUsuario()) ||
-            Objects.equals(tokenUsuario, album.getGrupoCreaAlbum().getUsuarioAdminGrupo().getCodUsuario())) {
+        // Si el usuario es el administrador del álbum o del grupo, se habilita la edición
+        if (Objects.equals(tokenUsuario, album.getUsuarioAdminAlbum().getCodUsuario())) {
             binding.botonModificarAlbum.setVisibility(View.VISIBLE);
             binding.botonModificarAlbum.setOnClickListener(this);
             binding.tituloAlbum.setEnabled(true);
@@ -115,6 +143,7 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
             binding.radioButtonIndividual.setEnabled(true);
         }
         else {
+            // Si el usuario no tiene permisos de edición, se deshabilita la edición
             binding.botonModificarAlbum.setVisibility(View.INVISIBLE);
             binding.tituloAlbum.setEnabled(false);
             binding.tituloAlbum.setInputType(InputType.TYPE_NULL);
@@ -128,10 +157,12 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Método para modificar el álbum
     public void modificarAlbum() {
         String tituloAlbum = binding.tituloAlbum.getText().toString().trim();
         String descripcionAlbum = binding.descripcionAlbum.getText().toString().trim();
         if (!tituloAlbum.isEmpty()) {
+            // Crea un objeto Album con los nuevos datos
             Album albumModificado = new Album();
             albumModificado.setTitulo(tituloAlbum);
             albumModificado.setDescripcion(descripcionAlbum);
@@ -144,6 +175,7 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
                 albumModificado.setTipo("I");
             }
 
+            // Ejecuta la operación de modificar álbum en un hilo aparte
             executorService.execute(() -> {
                 try {
                     cliente.modificarAlbum(album.getCodAlbum(), albumModificado);
@@ -163,20 +195,4 @@ public class DetallesAlbumFragment extends Fragment implements View.OnClickListe
         }
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonModificarAlbum) {
-            modificarAlbum();
-        }
-        else if (id == R.id.botonAtras) {
-            findNavController(v).popBackStack();
-        }
-    }
 }

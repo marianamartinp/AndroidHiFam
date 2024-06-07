@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">HiFam</string>
 
+    <!-- General -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="saludoUsuarioPersonalizado">¡Hey, %1$s!</string>
     <string name="saludoUsuario">¡Hey, Usuario!</string>
@@ -9,6 +10,7 @@
     <string name="nuevoAlbum">Nuevo Álbum</string>
     <string name="nuevaPublicacion">Nueva Publicación</string>
 
+    <!-- Login -->
     <string name="btnLogin">Iniciar Sesión</string>
     <string name="descripcionGrupo">Familia</string>
     <string name="tituloComentarios">Comentarios</string>
@@ -69,6 +71,7 @@
     <string name="btnConfirmar">Confirmar</string>
     <string name="btnAceptar">Aceptar</string>
     <string name="btnEliminar">Eliminar</string>
+    <string name="btnAbandonar">Abandonar</string>
 
 
     <!-- Items menús contextuales -->
@@ -170,5 +173,9 @@
     <!-- Usuario fragment -->
     <string name="misGrupos">Mis familias</string>
     <string name="miInformacion">Mi información</string>
+
+    <!-- Fragment modificar contrasenya -->
+    <string name="cambiarContrasenya">Nueva Contraseña</string>
+    <string name="placeholderCambiarContrasenya">Escribe una contraseña</string>
 
 </resources>

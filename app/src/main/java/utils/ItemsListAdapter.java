@@ -1,4 +1,4 @@
-package com.mariana.androidhifam;
+package utils;
 
 public class ItemsListAdapter {
     public static final int ITEM_COMENTARIO = 1;

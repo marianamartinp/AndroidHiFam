@@ -26,7 +26,7 @@ import pojosalbumfamiliar.UsuarioIntegraGrupo;
 
 /**
  *
- * @author DAM213
+ * @author DAM213 - Cliente de comunicaciones
  */
 public class CCAlbumFamiliar {
     
@@ -34,9 +34,8 @@ public class CCAlbumFamiliar {
     
     public void conectar() throws ExcepcionAlbumFamiliar{
         try {
-//            String equipoServidor = "172.16.2.190";
+//            String equipoServidor = "172.16.2.213";
             String equipoServidor = "192.168.1.213";
-//            String equipoServidor = "172.16.5.34";
             int puertoServidor = 30500;
             socketCliente = new Socket(equipoServidor, puertoServidor); 
             socketCliente.setSoTimeout(30000);

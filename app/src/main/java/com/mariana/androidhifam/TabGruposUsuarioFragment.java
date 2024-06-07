@@ -16,23 +16,21 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.mariana.androidhifam.databinding.FragmentTabGruposUsuarioBinding;
-import com.mariana.androidhifam.databinding.FragmentTabMiembrosGrupoBinding;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.Usuario;
-import pojosalbumfamiliar.UsuarioIntegraGrupo;
+import utils.ItemsListAdapter;
+import utils.ListAdapter;
 
-public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.OnItemClickListener, View.OnClickListener {
+public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.OnItemClickListener, View.OnClickListener, ModalFragment.CustomModalInterface {
 
-    private FragmentTabGruposUsuarioBinding binding;
+    private @NonNull FragmentTabGruposUsuarioBinding binding;
     private NavController navController;
     private MainActivity activity;
     private ExecutorService executorService;
@@ -42,30 +40,36 @@ public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.On
     private Integer tokenUsuario;
     private ListAdapter<Grupo> adapter;
 
+    // Método de creación
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Inicialización de variables y objetos
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
         cliente = new CCAlbumFamiliar();
     }
 
+    // Método de creación de la vista
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inicialización de vistas y obtención del token de usuario
         navController = NavHostFragment.findNavController(this);
         binding = FragmentTabGruposUsuarioBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
+    // Método que se llama cuando la vista se crea completamente
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Carga los grupos del usuario
         cargarGruposUsuario();
     }
 
+    // Método para cargar los grupos del usuario
     public void cargarGruposUsuario() {
         executorService.execute(() -> {
             try {
@@ -88,15 +92,41 @@ public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.On
         });
     }
 
+    // Método para manejar clics en elementos de la lista
     @Override
     public void onItemClick(Object item, int position, int idButton) {
         if (activity.getHabilitarInteraccion()) {
             if (idButton == R.id.iconoEquis) {
-                abandonarGrupo((Grupo) item, position);
+                int idGrupo = ((Grupo) item).getCodGrupo();
+                modalAbandonarGrupo(idGrupo, position);
             }
         }
     }
 
+    // Método para manejar clics positivos en el diálogo modal
+    @Override
+    public void onPositiveClick(String idModal, Integer position, Integer id) {
+        if (activity.getHabilitarInteraccion()) {
+            abandonarGrupo(id, position);
+        }
+    }
+
+    // Método para manejar clics en vistas
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonIngresarEnFamilia) {
+            navController.navigate(TabGruposUsuarioFragmentDirections.actionTabGruposUsuarioFragmentToIngresoGrupoFragment());
+        }
+    }
+
+    // Método para mostrar un diálogo modal para abandonar un grupo
+    public void modalAbandonarGrupo(int id, int position) {
+        ModalFragment modal = new ModalFragment("abandonarGrupo", position, id, this, "¿Desea abandor esta familia?", getString(R.string.btnAbandonar), getString(R.string.btnCancelar));
+        modal.show(activity.getSupportFragmentManager(), "modalAbandonarGrupo");
+    }
+
+    // Método para mostrar un texto alternativo si la lista de grupos está vacía
     public void mostrarTextoAlternativo() {
         if (grupos.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -108,10 +138,11 @@ public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.On
         }
     }
 
-    public void abandonarGrupo(Grupo item, int position) {
+    // Método para abandonar un grupo
+    public void abandonarGrupo(int idGrupo, int position) {
         executorService.execute(() -> {
             try {
-                cliente.eliminarUsuarioIntegraGrupo(tokenUsuario, item.getCodGrupo());
+                cliente.eliminarUsuarioIntegraGrupo(tokenUsuario, idGrupo);
                 mainHandler.post(() -> {
                     actualizarGrid(position);
                 });
@@ -121,6 +152,7 @@ public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.On
         });
     }
 
+    // Método para actualizar la lista después de abandonar un grupo
     public void actualizarGrid(int position) {
         grupos.remove(position);
         adapter.notifyItemRemoved(position);
@@ -128,14 +160,7 @@ public class TabGruposUsuarioFragment extends Fragment implements ListAdapter.On
         mostrarTextoAlternativo();
     }
 
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonIngresarEnFamilia) {
-            navController.navigate(TabGruposUsuarioFragmentDirections.actionTabGruposUsuarioFragmentToIngresoGrupoFragment());
-        }
-    }
-
+    // Método para manejar excepciones de la clase ExcepcionAlbumFamiliar
     public void manejadorExcepcionAlbumFamiliar(ExcepcionAlbumFamiliar e) {
         String mensaje;
         mensaje = e.getMensajeUsuario();

@@ -22,12 +22,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.FragmentGruposBinding;
 
 import java.io.File;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -38,11 +39,13 @@ import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
+import utils.GridAdapter;
 
 public class GruposFragment extends Fragment implements View.OnClickListener, View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout {
 
-    private GruposFragmentArgs gruposFragmentArgs;
+    private @NonNull GruposFragmentArgs gruposFragmentArgs;
     private @NonNull FragmentGruposBinding binding;
+    private NavController navController;
     private ArrayList<Grupo> grupos;
     private ArrayList<Album> albumes;
     private ArrayList<File> imagenesGrupos;
@@ -56,9 +59,11 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
     private Handler mainHandler;
     private boolean vistaCreada = false;
 
+    // Método llamado cuando se crea el Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtiene los argumentos pasados al Fragment
         if (getArguments() != null) {
             gruposFragmentArgs = GruposFragmentArgs.fromBundle(getArguments());
             animar = gruposFragmentArgs.getAnimacionToolbar();
@@ -70,18 +75,23 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método llamado cuando se crea la interfaz de usuario del Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        activity.findViewById(R.id.refreshLayout).setEnabled(true);
         binding = FragmentGruposBinding.inflate(inflater, container, false);
+        navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
+    // Método llamado después de que se haya creado la interfaz de usuario del Fragment
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (animar) {
+        // Configura la toolbar en función del estado de animación y si la vista fue creada previamente
+        if (animar && !vistaCreada) {
             activity.mostrarToolbar(true, true, false);
         }
         else {
@@ -89,10 +99,12 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
         activity.setRefreshLayout(this);
         saludoUsuario = activity.findViewById(R.id.saludoUsuario);
+        // Registra el GridView para el menú contextual
         registerForContextMenu(binding.gridView);
         binding.botonNuevaFamilia.setOnClickListener(this);
         binding.botonPapelera.setOnClickListener(this);
         SwipeRefreshLayout refreshLayout = activity.findViewById(R.id.refreshLayout);
+        // Deshabilitar la actualización cuando se está desplazando
         binding.gridView.setOnScrollListener(new GridView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -106,10 +118,12 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                // Método inutilizado
+                // No precisado.
             }
         });
+        // Configura el listener para los ítems del GridView
         binding.gridView.setOnItemClickListener(this);
+        // Carga o resume la vista de los grupos según si fue creada previamente
         if (vistaCreada) {
             resumirVistaGrupos(tokenUsuario);
         }
@@ -118,37 +132,40 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
+    // Método llamado al destruir la vista del Fragment
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método para manejar la selección de opciones en el menú contextual
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        int position = info.position;
-        int itemId = (int) binding.gridView.getAdapter().getItemId(position);
-        int idMenuItem = item.getItemId();
+        if (activity.getHabilitarInteraccion()) {
+            int position = info.position;
+            int itemId = (int) binding.gridView.getAdapter().getItemId(position);
+            int idMenuItem = item.getItemId();
 
-        if (idMenuItem == R.id.verDetallesGrupo) {
-            return true;
+            if (idMenuItem == R.id.verGrupo) {
+                navController.navigate(GruposFragmentDirections.actionGruposFragmentToDetallesGrupoFragment(itemId));
+            }
         }
-        else {
-            return super.onContextItemSelected(item);
-        }
+        return true;
     }
 
+    // Método para crear el menú contextual
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         if (activity.getHabilitarInteraccion()) {
             super.onCreateContextMenu(menu, v, menuInfo);
             MenuInflater inflater = getActivity().getMenuInflater();
             inflater.inflate(R.menu.menu_context_grupos, menu);
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
         }
     }
 
+    // Método para manejar clics en las vistas
     @Override
     public void onClick(View v) {
         if (activity.getHabilitarInteraccion()) {
@@ -161,6 +178,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
+    // Método para manejar los eventos de clic en los ítems del GridView
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (activity.getHabilitarInteraccion()) {
@@ -179,9 +197,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
-
+    // Carga el nombre del usuario
     public void cargarNombreUsuario(Integer tokenUsuario, CountDownLatch latch) {
         try {
+            // Obtiene el nombre del usuario y lo muestra en el saludo
             String nombreUsuario = cliente.leerUsuario(tokenUsuario).getNombre().split(" ", 2)[0];
             String saludo = getString(R.string.saludoUsuarioPersonalizado, nombreUsuario);
             mainHandler.post(() -> saludoUsuario.setText(saludo));
@@ -194,8 +213,10 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
+    // Carga los grupos del usuario
     public void cargarGrupos(Integer tokenUsuario, CountDownLatch latch) {
         try {
+            // Realiza la consulta de grupos y actualiza la interfaz
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
             filtros.put("uig.COD_USUARIO", "=" + tokenUsuario);
             filtros.put("g.FECHA_ELIMINACION", "is null");
@@ -212,12 +233,14 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
+    // Carga los datos en el GridView
     public void cargarGrid() {
         imagenesGrupos = activity.getImagenes();
         adapter = new GridAdapter<>(requireContext(), grupos, imagenesGrupos, false, albumes);
         binding.gridView.setAdapter(adapter);
     }
 
+    // Carga los álbumes no eliminados para mostrar como portada fotos de álbumes no eliminados solamente
     public void cargarAlbumesNoEliminados(CountDownLatch latch) {
         try {
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
@@ -239,11 +262,13 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
+    // Método para actualizar la interfaz con la información cargada
     public void actualizarInterfaz() {
         cargarGrid();
         mostrarTextoAlternativo();
     }
 
+    // Método para cargar las imágenes desde Drive
     public void cargarImagenesDrive(CountDownLatch latch) {
         try {
             activity.cargarImagenesDrive(true);
@@ -252,9 +277,11 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
+    // Método para cargar la vista de los grupos llamando a métodos secundarios
     public void cargarVistaGrupos(Integer tokenUsuario, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
+        // Utiliza CountDownLatch para esperar a la carga de datos en segundo plano
         CountDownLatch latch = new CountDownLatch(4);
         binding.gridView.startAnimation(parpadeo);
         executorService.execute(() -> cargarNombreUsuario(tokenUsuario, latch));
@@ -281,6 +308,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         });
     }
 
+    // Método para resumir la vista de los grupos
     public void resumirVistaGrupos(Integer tokenUsuario) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
@@ -304,7 +332,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         });
     }
 
-
+    // Método para mostrar el texto alternativo si no hay álbumes
     public void mostrarTextoAlternativo() {
         if (grupos.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -316,7 +344,7 @@ public class GruposFragment extends Fragment implements View.OnClickListener, Vi
         }
     }
 
-
+    // Método genérico para manejar errores al cargar la interfaz
     public void errorAlCargarInterfaz() {
         Toast.makeText(getContext(), "Error al cargar las familias.", Toast.LENGTH_SHORT).show();
     }

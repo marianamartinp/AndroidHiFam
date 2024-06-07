@@ -39,7 +39,7 @@ import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
 
 public class NuevoAlbumFragment extends Fragment implements View.OnClickListener {
-    private NuevoAlbumFragmentArgs nuevoAlbumFragmentArgs;
+    private @NonNull NuevoAlbumFragmentArgs nuevoAlbumFragmentArgs;
     private @NonNull FragmentNuevoAlbumBinding binding;
     private CCAlbumFamiliar cliente;
     private MainActivity activity;
@@ -48,9 +48,11 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
     private NavController navController;
     private Integer idGrupo, tokenUsuario;
 
+    // Método onCreate para la inicialización del fragmento
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtener los argumentos pasados al fragmento
         if (getArguments() != null) {
             nuevoAlbumFragmentArgs = NuevoAlbumFragmentArgs.fromBundle(getArguments());
             idGrupo = nuevoAlbumFragmentArgs.getIdGrupo();
@@ -60,23 +62,50 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método onCreateView para inflar el diseño de la vista del fragmento
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        activity.findViewById(R.id.refreshLayout).setEnabled(false);
+        // Inflar el diseño del fragmento
         binding = FragmentNuevoAlbumBinding.inflate(inflater, container, false);
+        // Obtener el controlador de navegación del fragmento
         navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
+    // Método onViewCreated para configurar la vista después de que se haya creado
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Cargar el título del grupo en la interfaz de usuario
         cargarTituloGrupo(idGrupo);
         binding.botonNuevoAlbum.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);
     }
 
+    // Método onDestroyView para limpiar la vista cuando el fragmento está destruido
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Liberar la referencia al diseño del fragmento para evitar fugas de memoria
+        binding = null;
+    }
+
+    // Método onClick para manejar los clics en los elementos de la vista
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonNuevoAlbum) {
+            crearAlbum(idGrupo);
+        }
+        else if (id == R.id.botonAtras) {
+            findNavController(v).popBackStack();
+        }
+    }
+
+    // Cargar el título del grupo
     public void cargarTituloGrupo(Integer idGrupo) {
         executorService.execute(() -> {
             try {
@@ -89,10 +118,12 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
         });
     }
 
+    // Crear un objeto de álbum con los datos proporcionados en la vista
     public void crearAlbum(Integer idGrupo) {
         String tituloAlbum = binding.tituloAlbum.getText().toString().trim();
         String descripcionAlbum = binding.descripcionAlbum.getText().toString().trim();
         if (!tituloAlbum.isEmpty()) {
+            // Construcción del álbum
             Album album = new Album();
             album.setTitulo(tituloAlbum);
             if (!descripcionAlbum.isEmpty()) {
@@ -111,6 +142,7 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
                 album.setTipo("I");
             }
 
+            // Inserción del álbum
             executorService.execute(() -> {
                 try {
                     cliente.insertarAlbum(album);
@@ -127,23 +159,6 @@ public class NuevoAlbumFragment extends Fragment implements View.OnClickListener
         }
         else {
             Toast.makeText(requireContext(), "El título del álbum es obligatorio.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonNuevoAlbum) {
-            crearAlbum(idGrupo);
-        }
-        else if (id == R.id.botonAtras) {
-            findNavController(v).popBackStack();
         }
     }
 }

@@ -1,5 +1,6 @@
 package driveapi;
 
+// POJO para retornar datos de Google Drive
 public class DatosArchivo {
     private String archivoId;
     private String nombre;

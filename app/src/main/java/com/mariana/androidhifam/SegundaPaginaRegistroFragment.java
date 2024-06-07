@@ -1,7 +1,5 @@
 package com.mariana.androidhifam;
 
-import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.graphics.Rect;
 import android.os.Bundle;
 
@@ -20,57 +18,49 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointBackward;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.mariana.androidhifam.databinding.FragmentLoginBinding;
-import com.mariana.androidhifam.databinding.FragmentPrimeraPaginaRegistroBinding;
 import com.mariana.androidhifam.databinding.FragmentSegundaPaginaRegistroBinding;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
+import utils.Utils;
 
 public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnClickListener {
 
-    private FragmentSegundaPaginaRegistroBinding binding;
+    private @NonNull FragmentSegundaPaginaRegistroBinding binding;
     private MainActivity activity;
-    private ExecutorService executorService;
-    private Handler mainHandler;
-    private CCAlbumFamiliar cliente;
-    private NavController navController;
     private boolean validezFechaNacimiento, validezContrasenya, mostrarContrasenya;
+    // Enumeración para la validación de EditText
     private enum EnumValidacionEditText {
         VALIDO, FORMATO_NO_VALIDO, VACIO
     }
 
-
+    // Método para crear la vista del fragmento
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activity = (MainActivity) getActivity();
-        executorService = Executors.newSingleThreadExecutor();
-        mainHandler = new Handler(Looper.getMainLooper());
-        cliente = new CCAlbumFamiliar();
     }
 
+    // Método ejecutado tras crear la vista del fragmento
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        navController = NavHostFragment.findNavController(this);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Devolver la vista raíz del fragmento
         binding = FragmentSegundaPaginaRegistroBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
+    // Método que se llama después de que la vista se haya creado completamente
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -88,6 +78,7 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
             }
         });
 
+        // Configurar el listener para el EditText de la contraseña
         binding.editextContrasenya.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -108,6 +99,7 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
         });
     }
 
+    // Método que maneja los clics en las vistas
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -136,12 +128,14 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
         }
     }
 
+    // Método para formatear la fecha seleccionada
     private String formatearFecha(long milisegundos) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         Date fecha = new Date(milisegundos);
         return sdf.format(fecha);
     }
 
+    // Método para mostrar las validaciones de la interfaz gráfica
     private void validarEditext(EditText editext, EnumValidacionEditText valorValidacion) {
         int id = editext.getId();
 
@@ -173,6 +167,7 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
         }
     }
 
+    // Método para verificar si la validación está completa
     public boolean validacionCompleta() {
         if (validezFechaNacimiento && validezContrasenya) {
             return true;
@@ -180,6 +175,7 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
         return false;
     }
 
+    // Getters de los datos del fragment para el fragment padre
     public String getEditextFechaNacimiento() {
         return binding.editextFechaNacimiento.getText().toString().trim();
     }
@@ -188,6 +184,7 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
         return binding.editextContrasenya.getText().toString().trim();
     }
 
+    // Método para verificar si el teclado está oculto
     private boolean tecladoEscondido(View rootView) {
         Rect r = new Rect();
         rootView.getWindowVisibleDisplayFrame(r);
@@ -198,11 +195,13 @@ public class SegundaPaginaRegistroFragment extends Fragment implements  View.OnC
         return alturaTeclado < alturaPantalla * 0.15; // Umbral arbitrario para detectar la visibilidad del teclado
     }
 
+    // Método para quitar el foco de los EditText (lo cual derivará en una validación)
     private void eliminarFocusEditext() {
         // Quitar el enfoque de los campos de entrada
         binding.editextContrasenya.clearFocus();
     }
 
+    // Método para mostrar u ocultar la contraseña
     private void mostrarContrasenya(){
         if (!mostrarContrasenya) {
             binding.botonMostrarContrasenya.setImageResource(R.drawable.eye);

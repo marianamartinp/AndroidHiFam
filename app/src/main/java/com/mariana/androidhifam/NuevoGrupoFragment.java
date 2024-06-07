@@ -20,14 +20,12 @@ import android.widget.Toast;
 
 import com.mariana.androidhifam.databinding.FragmentNuevoGrupoBinding;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
@@ -35,6 +33,9 @@ import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
+import utils.ItemsListAdapter;
+import utils.ListAdapter;
+import utils.Utils;
 
 public class NuevoGrupoFragment extends Fragment implements View.OnClickListener, ListAdapter.OnItemClickListener {
 
@@ -48,6 +49,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
     private NavController navController;
     private Integer tokenUsuario;
 
+    // Método onCreate: se llama cuando se crea la instancia del fragmento.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,8 +59,11 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método onCreateView: se llama para crear y devolver la vista asociada al fragmento.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        activity.findViewById(R.id.refreshLayout).setEnabled(false);
+        // Infla el diseño de la vista.
         binding = FragmentNuevoGrupoBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
         cliente = activity.getCliente();
@@ -66,19 +71,53 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         return binding.getRoot();
     }
 
+    // Método onViewCreated: se llama después de que la vista haya sido creada.
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        activity.findViewById(R.id.refreshLayout).setEnabled(false);
         binding.botonNuevaFamilia.setOnClickListener(this);
         binding.botonAnyadirUsuario.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);
-
+        // Crea un adaptador para la lista de usuarios y se lo asigna
         adapter = new ListAdapter<>(requireContext(), usuarios, ItemsListAdapter.ITEM_MIEMBRO_GRUPO, this);
         binding.miembrosGrupo.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.miembrosGrupo.setAdapter(adapter);
 
     }
 
+    // Método onDestroyView: se llama cuando la vista del fragmento está siendo destruida.
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // Método onClick: se llama cuando se hace clic en un elemento de la interfaz de usuario.
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonAnyadirUsuario) {
+            anyadirUsuario();
+        }
+        else if (id == R.id.botonNuevaFamilia) {
+            crearGrupo();
+        }
+        else if (id == R.id.botonAtras) {
+            findNavController(v).popBackStack();
+        }
+    }
+
+    // Método onItemClick: se llama cuando se hace clic en un elemento de la lista de usuarios.
+    @Override
+    public void onItemClick(Object item, int position, int idButton) {
+        usuarios.remove(position);
+        adapter.notifyItemRemoved(position);
+        adapter.notifyItemRangeChanged(position, usuarios.size() - position);
+        mostrarTextoAlternativo();
+    }
+
+    // Método crearGrupo: se encarga de crear un nuevo grupo y de comprobar las constraints requeridas
     public void crearGrupo() {
         String tituloFamilia = binding.tituloFamilia.getText().toString().trim();
         String descripcionFamilia = binding.descripcionFamilia.getText().toString().trim();
@@ -126,6 +165,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    // Método anyadirUsuario: se encarga de añadir un usuario al grupo si no existe ya en él y de actualizar la interfaz
     public void anyadirUsuario() {
         if (!binding.usuarioFamilia.getText().toString().trim().isEmpty()) {
             AtomicReference<ArrayList<Usuario>> resultado = new AtomicReference<>(new ArrayList<>());
@@ -163,6 +203,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         }
     }
 
+    // Método usuarioYaInsertado: verifica si un usuario ya está en la lista de la interfaz con usuarios del grupo.
     public boolean usuarioYaInsertado(int id) {
         for (Usuario usuario : usuarios) {
             if (id == usuario.getCodUsuario()) {
@@ -172,6 +213,7 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         return false;
     }
 
+    // Método mostrarTextoAlternativo: muestra un texto alternativo si la lista de usuarios del grupo está vacía.
     public void mostrarTextoAlternativo() {
         if (usuarios.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -181,33 +223,5 @@ public class NuevoGrupoFragment extends Fragment implements View.OnClickListener
         else {
             binding.textoAlternativo.setVisibility(View.INVISIBLE);
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
-    }
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonAnyadirUsuario) {
-            anyadirUsuario();
-        }
-        else if (id == R.id.botonNuevaFamilia) {
-            crearGrupo();
-        }
-        else if (id == R.id.botonAtras) {
-            findNavController(v).popBackStack();
-        }
-    }
-
-    @Override
-    public void onItemClick(Object item, int position, int idButton) {
-        usuarios.remove(position);
-        adapter.notifyItemRemoved(position);
-        adapter.notifyItemRangeChanged(position, usuarios.size() - position);
-        mostrarTextoAlternativo();
     }
 }

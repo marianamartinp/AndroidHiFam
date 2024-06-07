@@ -8,45 +8,33 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.text.InputFilter;
-import android.text.Spanned;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentIngresoGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentSolicitudesEntradaGrupoBinding;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.SolicitudEntradaGrupo;
-import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
+import utils.ItemsListAdapter;
+import utils.ListAdapter;
 
 public class SolicitudesEntradaGrupoFragment extends DialogFragment implements View.OnClickListener, DialogInterface.OnDismissListener, ListAdapter.OnItemClickListener {
 
-    private FragmentSolicitudesEntradaGrupoBinding binding;
-    private SolicitudesEntradaGrupoFragmentArgs solicitudesEntradaGrupoFragmentArgs;
-    private NavController navController;
+    private @NonNull FragmentSolicitudesEntradaGrupoBinding binding;
+    private @NonNull SolicitudesEntradaGrupoFragmentArgs solicitudesEntradaGrupoFragmentArgs;
     private ListAdapter<SolicitudEntradaGrupo> adapter;
     private MainActivity activity;
     private ExecutorService executorService;
@@ -56,6 +44,7 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
     private CCAlbumFamiliar cliente;
 
 
+    // Método de creación
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,25 +58,29 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método de creación del diálogo
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         cliente = activity.getCliente();
         binding = FragmentSolicitudesEntradaGrupoBinding.inflate(getLayoutInflater());
-        navController = NavHostFragment.findNavController(this);
+        // Creación del diálogo y configuración de vistas
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());
         binding.botonAtras.setOnClickListener(this);
+        // Método para cargar las solicitudes de entrada a un grupo
         cargarSolicitudesEntradaGrupo(idGrupo);
         return builder.create();
     }
 
+    // Método para realizar acciones cuando se destruye la vista
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método para manejar clics en vistas
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -96,9 +89,11 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         }
     }
 
+    // Método para realizar acciones al reanudar el diálogo
     @Override
     public void onResume() {
         super.onResume();
+        // Configuración del tamaño del diálogo
         Window window = getDialog().getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         int marginAncho = getResources().getDimensionPixelSize(R.dimen.dialog_solicitudes_width_margin);
@@ -110,11 +105,13 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         window.setAttributes(params);
     }
 
+    // Método para manejar el evento de cierre del diálogo
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
     }
 
+    // Método para manejar el clic en elementos de la lista
     @Override
     public void onItemClick(Object item, int position, int idButton) {
         if (activity.getHabilitarInteraccion()) {
@@ -126,6 +123,7 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         }
     }
 
+    // Método para cargar las solicitudes de entrada a un grupo
     public void cargarSolicitudesEntradaGrupo(int idGrupo) {
         executorService.execute(() -> {
             try {
@@ -147,6 +145,7 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         });
     }
 
+    // Método para aceptar solicitudes de entrada
     public void aceptarSolicitudUsuario(SolicitudEntradaGrupo item, int position) {
         SolicitudEntradaGrupo seg = item;
         executorService.execute(() -> {
@@ -162,6 +161,7 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         });
     }
 
+    // Método para rechazar solicitudes de entrada
     public void rechazarSolicitudUsuario(SolicitudEntradaGrupo item, int position) {
         executorService.execute(() -> {
             try {
@@ -175,13 +175,16 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         });
     }
 
+    // Métodos para aceptar y rechazar solicitudes de entrada
     public void actualizarGrid(int position) {
+        // Actualización de la lista
         solicitudes.remove(position);
         adapter.notifyItemRemoved(position);
         adapter.notifyItemRangeChanged(position, solicitudes.size() - position);
         mostrarTextoAlternativo();
     }
 
+    // Método para mostrar un mensaje cuando no hay solicitudes
     public void mostrarTextoAlternativo() {
         if (solicitudes.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -193,6 +196,7 @@ public class SolicitudesEntradaGrupoFragment extends DialogFragment implements V
         }
     }
 
+    // Método para manejar excepciones relacionadas con el álbum familiar
     public void manejadorExcepcionAlbumFamiliar(ExcepcionAlbumFamiliar e) {
         String mensaje;
         mensaje = e.getMensajeUsuario();

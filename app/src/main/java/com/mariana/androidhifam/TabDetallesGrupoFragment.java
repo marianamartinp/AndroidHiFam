@@ -1,13 +1,10 @@
 package com.mariana.androidhifam;
 
-import android.content.res.Resources;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -19,13 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentDetallesGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentTabDetallesGrupoBinding;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,12 +26,11 @@ import java.util.concurrent.Executors;
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.Usuario;
-import pojosalbumfamiliar.UsuarioIntegraGrupo;
+import utils.Utils;
 
 public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
 
-    private FragmentTabDetallesGrupoBinding binding;
+    private @NonNull FragmentTabDetallesGrupoBinding binding;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
@@ -48,9 +40,11 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
     private Integer tokenUsuario, idGrupo;
     private boolean camposModificados;
 
+    // Método de creación
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Inicialización de variables y objetos
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -58,9 +52,11 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
         parentFragment = (DetallesGrupoFragment) this.getParentFragment();
     }
 
+    // Método de creación de la vista
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        // Inflar el diseño y configurar vistas
         binding = FragmentTabDetallesGrupoBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         idGrupo = parentFragment.getGrupoId();
@@ -69,14 +65,18 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
         return binding.getRoot();
     }
 
+    // Método que se llama cuando la vista se crea completamente
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Cargar detalles del grupo
         cargarDetallesGrupo();
     }
 
+    // Métodos para manejar cambios de texto en los EditText
     @Override
     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+        // No precisado.
     }
     @Override
     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -84,9 +84,10 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
     }
     @Override
     public void afterTextChanged(Editable s) {
-
+        // No precisado.
     }
 
+    // Método para cargar los detalles del grupo
     public void cargarDetallesGrupo() {
         executorService.execute(() -> {
             try {
@@ -103,6 +104,7 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
         });
     }
 
+    // Método para actualizar la interfaz con los detalles del grupo
     public void actualizarInterfaz(Grupo grupo) {
         binding.editextCodigoGrupo.setText(grupo.getCodGrupo().toString());
         binding.editextFechaCreacion.setText(Utils.parsearDateAString(grupo.getFechaCreacion()));
@@ -111,6 +113,7 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
         binding.editextDescripcionFamilia.setText(grupo.getDescripcion());
     }
 
+    // Método para revisar los permisos del usuario en el grupo
     public void revisarPermisos(Integer tokenUsuario, Grupo grupo) {
         if (Objects.equals(tokenUsuario, grupo.getUsuarioAdminGrupo().getCodUsuario())) {
             binding.editextTituloFamilia.setEnabled(true);
@@ -130,6 +133,7 @@ public class TabDetallesGrupoFragment extends Fragment implements TextWatcher {
         }
     }
 
+    // Métodos para obtener los valores de los EditText
     public String getEditextTituloFamilia() {
         return binding.editextTituloFamilia.getText().toString().trim();
     }

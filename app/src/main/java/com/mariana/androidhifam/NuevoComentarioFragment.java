@@ -33,19 +33,19 @@ import pojosalbumfamiliar.Usuario;
 
 public class NuevoComentarioFragment extends DialogFragment implements View.OnClickListener, DialogInterface.OnDismissListener {
 
-    private NuevoComentarioFragmentArgs nuevoComentarioFragmentArgs;
-    private FragmentNuevoComentarioBinding binding;
-    private NavController navController;
+    private @NonNull NuevoComentarioFragmentArgs nuevoComentarioFragmentArgs;
+    private @NonNull FragmentNuevoComentarioBinding binding;
     private CCAlbumFamiliar cliente;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
     private Integer tokenUsuario, idPublicacion;
 
-
+    // Método onCreate: se llama cuando se crea la instancia del fragmento.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtiene los argumentos pasados al fragmento.
         if (getArguments() != null) {
             nuevoComentarioFragmentArgs = NuevoComentarioFragmentArgs.fromBundle(getArguments());
             idPublicacion = nuevoComentarioFragmentArgs.getIdPublicacion();
@@ -55,13 +55,15 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método onCreateDialog: se llama para crear y configurar el diálogo del fragmento.
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        // Infla el diseño de la interfaz de usuario.
         binding = FragmentNuevoComentarioBinding.inflate(getLayoutInflater());
         cliente = activity.getCliente();
         tokenUsuario = Integer.parseInt(activity.getToken());
-        navController = NavHostFragment.findNavController(this);
+        // Crea un constructor de AlertDialog con el contexto de la actividad principal.
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());
         binding.botonEnviarComentario.setOnClickListener(this);
@@ -69,26 +71,30 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
         return builder.create();
     }
 
+    // Método onDestroyView: se llama cuando se destruye la vista del fragmento.
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método onClick: se llama cuando se hace clic en un elemento de la interfaz de usuario.
     @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonEnviarComentario) {
-            solicitarEntradaEnGrupo();
+            insertarComentario();
         }
         else if (id == R.id.botonAtras) {
             dismiss();
         }
     }
 
+    // Método onResume: se llama cuando el fragmento vuelve a estar visible para el usuario.
     @Override
     public void onResume() {
         super.onResume();
+        // Modificación del alto y ancho del modal
         Window window = getDialog().getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         int marginAncho = getResources().getDimensionPixelSize(R.dimen.dialog_ingreso_grupo_width_margin);
@@ -100,13 +106,14 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
         window.setAttributes(params);
     }
 
+    // Método onDismiss: se llama cuando el diálogo se cierra.
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
-        navController.popBackStack();
     }
 
-    public void solicitarEntradaEnGrupo() {
+    // Método insertarComentario que se encarga de enviar el comentario al servidor.
+    public void insertarComentario() {
         executorService.execute(() -> {
             try {
                 Usuario usuario = new Usuario();
@@ -117,7 +124,7 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
                 comentario.setPublicacionTieneComentario(publicacion);
                 comentario.setUsuarioCreaComentario(usuario);
                 comentario.setTexto(binding.editableTexto.getText().toString().trim());
-
+                // Inserta el comentario utilizando el cliente del álbum familiar.
                 cliente.insertarComentario(comentario);
                 mainHandler.post(() -> {
                     Toast.makeText(requireContext(), "Se ha enviado tu comentario.", Toast.LENGTH_SHORT).show();

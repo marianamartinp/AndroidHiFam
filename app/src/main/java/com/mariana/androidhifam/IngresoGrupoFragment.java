@@ -41,15 +41,14 @@ import pojosalbumfamiliar.Usuario;
 
 public class IngresoGrupoFragment extends DialogFragment implements View.OnClickListener, DialogInterface.OnDismissListener {
 
-    private FragmentIngresoGrupoBinding binding;
-    private NavController navController;
+    private @NonNull FragmentIngresoGrupoBinding binding;
     private CCAlbumFamiliar cliente;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
     private Integer tokenUsuario;
 
-
+    // Método que se ejecuta al crear la instancia del fragmento.
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,26 +57,32 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método que se ejecuta al crear el diálogo.
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        // Inflamos la vista del diálogo.
         binding = FragmentIngresoGrupoBinding.inflate(getLayoutInflater());
         cliente = activity.getCliente();
         tokenUsuario = Integer.getInteger(activity.getToken());
-        navController = NavHostFragment.findNavController(this);
+        // Creamos un constructor de diálogo.
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        // Establecemos la vista del diálogo.
         builder.setView(binding.getRoot());
+        // Listeners
         binding.botonEnviarSolicitud.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);
         return builder.create();
     }
 
+    // Método que se ejecuta al destruir la vista.
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método que se ejecuta al hacer clic en un botón.
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -89,6 +94,7 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
         }
     }
 
+    // Método que se ejecuta al reanudar el fragmento.
     @Override
     public void onResume() {
         super.onResume();
@@ -103,11 +109,13 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
         window.setAttributes(params);
     }
 
+    // Método que se ejecuta al cerrar el diálogo.
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
     }
 
+    // Método para solicitar la entrada en un grupo.
     public void solicitarEntradaEnGrupo() {
         executorService.execute(() -> {
             try {
@@ -121,6 +129,7 @@ public class IngresoGrupoFragment extends DialogFragment implements View.OnClick
                     dismiss();
                 });
             }
+            // Reemplazo algunos mensajes de usuario por otros más user-friendly
             catch (ExcepcionAlbumFamiliar e) {
                 String mensaje;
                 switch (e.getCodErrorBd()) {

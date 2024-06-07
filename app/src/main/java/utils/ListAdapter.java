@@ -1,14 +1,15 @@
-package com.mariana.androidhifam;
+package utils;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.mariana.androidhifam.R;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,7 +19,6 @@ import pojosalbumfamiliar.Comentario;
 import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
-import pojosalbumfamiliar.UsuarioIntegraGrupo;
 
 public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>{
     private ArrayList<T> objetos;
@@ -136,7 +136,7 @@ public class ListAdapter<T> extends RecyclerView.Adapter<ListAdapter.ViewHolder>
                     this.fecha.setText(Utils.parsearDateAString(comentario.getFechaCreacion()));
                     this.contenido.setText(comentario.getTexto());
                     if (Objects.equals(tokenUsuario, comentario.getUsuarioCreaComentario().getCodUsuario()) ||
-                            Objects.equals(tokenUsuario, adminAlbum) || Objects.equals(tokenUsuario, adminGrupo)) {
+                        Objects.equals(tokenUsuario, adminAlbum) || Objects.equals(tokenUsuario, adminGrupo)) {
                         this.iconoEliminar.setVisibility(View.VISIBLE);
                         this.iconoEliminar.setOnClickListener(new View.OnClickListener() {
                             @Override public void onClick(View v) {

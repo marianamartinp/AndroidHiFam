@@ -1,4 +1,4 @@
-package com.mariana.androidhifam;
+package utils;
 
 import static androidx.navigation.Navigation.findNavController;
 
@@ -15,6 +15,8 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.mariana.androidhifam.R;
 
 import java.io.File;
 import java.net.URL;
@@ -122,17 +124,30 @@ public class GridAdapter<T> extends BaseAdapter {
         if (!imagenes.isEmpty()) {
             for (File imagenLista : imagenes) {
                 String grupoImagen = imagenLista.getName().substring(0,3);
-                String albumImagen = imagenLista.getName().substring(3,8);
                 String grupoEsperado = String.format("%03d", grupos.get(position).getCodGrupo());
-                for (Album album : albumes) {
-                    String albumEsperado = String.format("%05d", album.getCodAlbum());
-                    if (grupoImagen.equals(grupoEsperado) && albumImagen.equals(albumEsperado)) {
+                if (null != albumes) {
+                    String albumImagen = imagenLista.getName().substring(3,8);
+                    for (Album album : albumes) {
+                        String albumEsperado = String.format("%05d", album.getCodAlbum());
+                        if (grupoImagen.equals(grupoEsperado) && albumImagen.equals(albumEsperado)) {
+                            Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
+                            if (bitmap != null) {
+                                imagen.setImageBitmap(bitmap);
+                                break;
+                            } else {
+                                Log.e("ImageView", "Error al cargar las portadas." + imagenLista.getAbsolutePath());
+                            }
+                        }
+                    }
+                }
+                else {
+                    if (grupoImagen.equals(grupoEsperado)) {
                         Bitmap bitmap = BitmapFactory.decodeFile(imagenLista.getAbsolutePath());
                         if (bitmap != null) {
                             imagen.setImageBitmap(bitmap);
                             break;
                         } else {
-                            Log.e("ImageView", "Failed to decode the image file: " + imagenLista.getAbsolutePath());
+                            Log.e("ImageView", "Error al cargar las portadas." + imagenLista.getAbsolutePath());
                         }
                     }
                 }

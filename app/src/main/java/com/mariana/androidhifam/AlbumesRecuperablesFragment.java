@@ -22,20 +22,17 @@ import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.FragmentAlbumesRecuperablesBinding;
-import com.mariana.androidhifam.databinding.FragmentGruposRecuperablesBinding;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
+import utils.GridAdapter;
 
 public class AlbumesRecuperablesFragment extends Fragment implements View.OnCreateContextMenuListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
 
@@ -49,15 +46,17 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
-    private Grupo grupo;
 
+    // Método llamado al crear la instancia del Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Recupera los argumentos pasados al Fragment
         if (getArguments() != null) {
             albumesFragmentArgs = AlbumesFragmentArgs.fromBundle(getArguments());
             idGrupo = albumesFragmentArgs.getIdGrupo();
         }
+        // Inicializa el cliente para interactuar con el backend
         cliente = new CCAlbumFamiliar();
         albumes = new ArrayList<>();
         activity = (MainActivity) getActivity();
@@ -65,13 +64,17 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método llamado para crear la vista del Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        activity.findViewById(R.id.refreshLayout).setEnabled(true);
+        // Infla el layout del Fragment y obtiene una instancia del binding
         binding = FragmentAlbumesRecuperablesBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
+    // Método llamado cuando la vista ha sido creada
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -79,6 +82,8 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         activity.setRefreshLayout(this);
         registerForContextMenu(binding.gridView);
         SwipeRefreshLayout refreshLayout = activity.findViewById(R.id.refreshLayout);
+
+        // Listener para deshabilitar el refresh cuando se está desplazando la vista
         binding.gridView.setOnScrollListener(new GridView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -89,22 +94,26 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
                     refreshLayout.setEnabled(true);
                 }
             }
-
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                // Empty method body, not needed for this purpose
+                // No precisado.
             }
         });
+
+        // Listener para manejar el clic en los ítems del GridView
         binding.gridView.setOnItemClickListener(this);
+        // Cargo los datos en la vista.
         cargarVistaAlbumes(tokenUsuario, idGrupo, refreshLayout);
     }
 
+    // Método llamado al destruir la vista del Fragment
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método llamado al seleccionar un ítem del menú contextual
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
@@ -121,6 +130,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         }
     }
 
+    // Método para crear el menú contextual
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         if (activity.getHabilitarInteraccion()) {
@@ -130,6 +140,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         }
     }
 
+    // Método llamado al hacer clic en un ítem del GridView
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (activity.getHabilitarInteraccion()) {
@@ -148,6 +159,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         }
     }
 
+    // Implementación del método para manejar el clic positivo en el modal
     @Override
     public void onPositiveClick(String idModal, Integer position, Integer id) {
         if (activity.getHabilitarInteraccion()) {
@@ -155,6 +167,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         }
     }
 
+    // Método para cargar los álbumes eliminados
     public void cargarAlbumes(Integer tokenUsuario, Integer idGrupo) {
         try {
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
@@ -171,17 +184,20 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         }
     }
 
+    // Método para cargar el GridView para los álbumes e imágenes
     public void cargarGrid() {
         imagenesAlbumes = activity.getImagenes();
         adapter = new GridAdapter<>(requireContext(), albumes, imagenesAlbumes, false);
         binding.gridView.setAdapter(adapter);
     }
 
+    // Método para actualizar la interfaz
     public void actualizarInterfaz() {
         cargarGrid();
         mostrarTextoAlternativo();
     }
 
+    // Método para cargar la vista de álbumes llamando a métodos secundarios
     public void cargarVistaAlbumes(Integer tokenUsuario, Integer idGrupo, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
@@ -199,11 +215,13 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         });
     }
 
+    // Método para mostrar el modal de recuperación de álbum
     public void modalRecuperarAlbum(int position, int id) {
         ModalFragment modal = new ModalFragment("recuperarAlbum", position, (int) id, this, "¿Desea recuperar este álbum?", getString(R.string.btnRecuperar), getString(R.string.btnCancelar));
         modal.show(activity.getSupportFragmentManager(), "modalRecuperarAlbum");
     }
 
+    // Método para recuperar un álbum
     public void recuperarAlbum(int position, int idAlbum) {
         executorService.execute(() -> {
             try {
@@ -220,6 +238,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         });
     }
 
+    // Método para mostrar un mensaje alternativo si no hay álbumes
     public void mostrarTextoAlternativo() {
         if (albumes.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -230,6 +249,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         }
     }
 
+    // Método para mostrar un mensaje de error genérico al cargar la interfaz
     public void errorAlCargarInterfaz() {
         Toast.makeText(getContext(), "Error al cargar los álbumes eliminados.", Toast.LENGTH_SHORT).show();
     }

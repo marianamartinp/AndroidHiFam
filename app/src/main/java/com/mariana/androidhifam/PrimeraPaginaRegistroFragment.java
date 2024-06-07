@@ -7,14 +7,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Editable;
 import android.text.InputFilter;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,9 +18,7 @@ import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentLoginBinding;
 import com.mariana.androidhifam.databinding.FragmentPrimeraPaginaRegistroBinding;
-import com.mariana.androidhifam.databinding.FragmentRegistroBinding;
 
 import java.util.LinkedHashMap;
 import java.util.concurrent.ExecutorService;
@@ -32,20 +26,23 @@ import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+import utils.FiltroNombreUsuario;
+import utils.Utils;
 
 public class PrimeraPaginaRegistroFragment extends Fragment {
 
-    private FragmentPrimeraPaginaRegistroBinding binding;
+    private @NonNull FragmentPrimeraPaginaRegistroBinding binding;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
     private CCAlbumFamiliar cliente;
-    private NavController navController;
     private boolean validezNombre, validezUsuario, validezCorreo, validezTelefono, validezPrefijo = true;
+    // Enumeración para la validación del EditText
     private enum EnumValidacionEditText {
         VALIDO, FORMATO_NO_VALIDO, ERROR, VACIO, EN_USO
     }
 
+    // Método onCreate: se ejecuta cuando se crea el fragmento
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,17 +52,19 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
         cliente = new CCAlbumFamiliar();
     }
 
+    // Método onCreateView: se ejecuta para crear y devolver la vista asociada al fragmento
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        navController = NavHostFragment.findNavController(this);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflar el layout del fragmento
         binding = FragmentPrimeraPaginaRegistroBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
+    // Método onViewCreated: se ejecuta después de que la vista del fragmento ha sido creada
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Establecer un filtro para el EditText del nombre de usuario
         binding.editextUsuario.setFilters(new InputFilter[]{new FiltroNombreUsuario()});
         activarValidacion();
         final View rootView = activity.findViewById(R.id.rootViewRegistro);
@@ -82,7 +81,9 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
 
     }
 
+    // Método para activar la validación de los EditText
     public void activarValidacion() {
+        // Validación del EditText de correo electrónico
         binding.editextCorreoElectronico.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -121,6 +122,7 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
             }
         });
 
+        // Validación del EditText de nombre
         binding.editextNombre.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -136,6 +138,7 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
             }
         });
 
+        // Validación del EditText de usuario
         binding.editextUsuario.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -169,6 +172,7 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
             }
         });
 
+        // Validación del EditText de prefijo de número de teléfono
         binding.editextPrefijo.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -183,6 +187,7 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
             }
         });
 
+        // Validación del EditText de número de teléfono
         binding.editextTelefono.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -222,6 +227,7 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
         });
     }
 
+    // Método para validar un EditText y mostrar mensajes de error
     private void validarEditext(EditText editext, EnumValidacionEditText valorValidacion) {
         int id = editext.getId();
 
@@ -334,6 +340,28 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
         return false;
     }
 
+    // Método para verificar si el teclado está oculto
+    private boolean tecladoEscondido(View rootView) {
+        Rect r = new Rect();
+        rootView.getWindowVisibleDisplayFrame(r);
+        int alturaPantalla = rootView.getHeight();
+        int alturaTeclado = alturaPantalla - r.bottom;
+
+        // Determinar si el teclado está visible o no
+        return alturaTeclado < alturaPantalla * 0.15; // Umbral arbitrario para detectar la visibilidad del teclado
+    }
+
+    // Método para eliminar el focus de los editext (esto derivará en que se validen)
+    private void eliminarFocusEditext() {
+        // Quitar el enfoque de los campos de entrada
+        binding.editextNombre.clearFocus();
+        binding.editextUsuario.clearFocus();
+        binding.editextCorreoElectronico.clearFocus();
+        binding.editextPrefijo.clearFocus();
+        binding.editextTelefono.clearFocus();
+    }
+
+    // Getters para recuperar los valores desde el fragment padre
     public String getEditextNombre() {
         return binding.editextNombre.getText().toString().trim();
     }
@@ -350,24 +378,5 @@ public class PrimeraPaginaRegistroFragment extends Fragment {
         String numeroTelefono = binding.editextTelefono.getText().toString().trim();
         String prefijoTelefono = binding.editextPrefijo.getText().toString().trim();
         return Utils.limpiarNumeroDeTelefono(prefijoTelefono.length() + prefijoTelefono + numeroTelefono);
-    }
-
-    private boolean tecladoEscondido(View rootView) {
-        Rect r = new Rect();
-        rootView.getWindowVisibleDisplayFrame(r);
-        int alturaPantalla = rootView.getHeight();
-        int alturaTeclado = alturaPantalla - r.bottom;
-
-        // Determinar si el teclado está visible o no
-        return alturaTeclado < alturaPantalla * 0.15; // Umbral arbitrario para detectar la visibilidad del teclado
-    }
-
-    private void eliminarFocusEditext() {
-        // Quitar el enfoque de los campos de entrada
-        binding.editextNombre.clearFocus();
-        binding.editextUsuario.clearFocus();
-        binding.editextCorreoElectronico.clearFocus();
-        binding.editextPrefijo.clearFocus();
-        binding.editextTelefono.clearFocus();
     }
 }

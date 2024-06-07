@@ -39,6 +39,7 @@ import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+import utils.GridAdapter;
 
 public class PublicacionesFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {
     private @NonNull PublicacionesFragmentArgs publicacionesFragmentArgs;
@@ -56,9 +57,11 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
     private NavController navController;
     private CCAlbumFamiliar cliente;
 
+    // Método onCreate: inicializa variables y recibe los argumentos del fragmento
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtener los argumentos del fragmento
         if (getArguments() != null) {
             publicacionesFragmentArgs = PublicacionesFragmentArgs.fromBundle(getArguments());
             idAlbum = publicacionesFragmentArgs.getIdAlbum();
@@ -71,15 +74,18 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método onCreateView: infla y retorna la vista del fragmento
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         navController = NavHostFragment.findNavController(this);
+        // Enlazar la vista del fragmento con su clase de enlace (binding)
         binding = FragmentPublicacionesBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         cliente = activity.getCliente();
         return binding.getRoot();
     }
 
+    // Método onViewCreated: configura la vista después de que se ha creado
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -88,10 +94,11 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         binding.botonNuevaPublicacion.setOnClickListener(this);
         binding.botonOpciones.setOnClickListener(this);
         SwipeRefreshLayout refreshLayout = activity.findViewById(R.id.refreshLayout);
+        // Configurar el comportamiento del SwipeRefreshLayout al desplazarse
         binding.gridView.setOnScrollListener(new GridView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                // Disable refreshing when scrolling
+                // Deshabilitar el refresco al desplazarse
                 if (scrollState != AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
                     refreshLayout.setEnabled(false);
                 } else {
@@ -101,10 +108,11 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                // Empty method body, not needed for this purpose
+                // No precisado.
             }
         });
         binding.gridView.setOnItemClickListener(this);
+        // Verificar si la vista ya se ha creado o si se ha navegado desde la lista de publicaciones
         if (vistaCreada || desdePublicacionesLista) {
             resumirVistaPublicaciones(idAlbum);
         }
@@ -113,12 +121,56 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Método onDestroyView para limpiar la vista cuando el fragmento está destruido
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Implementación de OnClickListener: maneja los clics en los elementos de la interfaz de usuario
+    @Override
+    public void onClick(View v) {
+        if (activity.getHabilitarInteraccion()) {
+            int id = v.getId();
+            if (id == R.id.botonVistaIndividual) {
+                findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionesListaFragment(idAlbum, idGrupo));
+            } else if (id == R.id.botonNuevaPublicacion) {
+                findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToNuevaPublicacionFragment(idAlbum, idGrupo));
+            } else if (id == R.id.botonOpciones) {
+                menuPopUp();
+            }
+        }
+    }
+
+    // Implementación de OnItemClickListener: maneja los clics en los elementos del GridView
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (activity.getHabilitarInteraccion()) {
+            findNavController(view).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionFragment((int) id, idGrupo, idAlbum));
+        }
+    }
+
+    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
+    @Override
+    public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
+        if (activity.getHabilitarInteraccion()) {
+            cargarVistaPublicaciones(idAlbum, refreshLayout);
+        }
+        else {
+            refreshLayout.setRefreshing(false);
+        }
+    }
+
+    // Implementación de CustomModalInterface: define las acciones al interactuar con un diálogo modal personalizado
+    @Override
+    public void onPositiveClick(String idModal, Integer position, Integer id) {
+        if (activity.getHabilitarInteraccion()) {
+            eliminarAlbum(id);
+        }
+    }
+
+    // Intenta cargar la información del álbum correspondiente
     public void cargarAlbum(Integer idAlbum, CountDownLatch latch) {
         try {
             album = cliente.leerAlbum(idAlbum);
@@ -132,12 +184,14 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Actualiza la interfaz con el título del álbum
     public void cargarTituloAlbum() {
         if (null != album) {
             binding.tituloAlbum.setText(album.getTitulo());
         }
     }
 
+    // Intenta cargar las publicaciones asociadas al álbum
     public void cargarPublicaciones(Integer idAlbum, CountDownLatch latch) {
         try {
             LinkedHashMap<String, String> filtros = new LinkedHashMap<>();
@@ -158,18 +212,21 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Obtiene las imágenes asociadas a las publicaciones y las muestra en el grid
     public void cargarGrid() {
         imagenesPublicaciones = activity.getImagenes();
         adapter = new GridAdapter<>(requireContext(), publicaciones, imagenesPublicaciones, false);
         binding.gridView.setAdapter(adapter);
     }
 
+    // Actualiza el título del álbum, el GridView y muestra texto alternativo si no hay publicaciones
     public void actualizarInterfaz() {
         cargarTituloAlbum();
         cargarGrid();
         mostrarTextoAlternativo();
     }
 
+    // Intenta cargar las imágenes asociadas a las publicaciones desde Drive
     public void cargarImagenesDrive(CountDownLatch latch) {
         try {
             activity.cargarImagenesDrive(false);
@@ -179,6 +236,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Carga la vista de las publicaciones llamando a métodos secundarios
     public void cargarVistaPublicaciones(Integer idAlbum, SwipeRefreshLayout refreshLayout) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
@@ -205,6 +263,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         });
     }
 
+    // Ejecuta la operación para cargar las publicaciones al resumir la pantalla
     public void resumirVistaPublicaciones(Integer idAlbum) {
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
@@ -218,6 +277,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         });
     }
 
+    // Crea un menú emergente (PopupMenu) asociado al botón de opciones
     public void menuPopUp() {
         PopupMenu popup = new PopupMenu(requireActivity(), binding.botonOpciones);
         popup.getMenuInflater().inflate(R.menu.menu_context_albumes, popup.getMenu());
@@ -228,6 +288,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
                 popup.getMenuInflater().inflate(R.menu.menu_opciones_albumes, popup.getMenu());
             }
         }
+        // Define el comportamiento al hacer clic en los elementos del menú
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             public boolean onMenuItemClick(MenuItem item) {
                 if (activity.getHabilitarInteraccion()) {
@@ -237,7 +298,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
                         modalEliminarAlbum(idAlbum);
                         return true;
                     }
-                    else if (idMenuItem == R.id.verDetallesAlbum) {
+                    else if (idMenuItem == R.id.verAlbum) {
                         navController.navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToDetallesAlbumFragment(idAlbum));
                         return true;
                     }
@@ -248,45 +309,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         popup.show();
     }
 
-    @Override
-    public void onClick(View v) {
-        if (activity.getHabilitarInteraccion()) {
-            int id = v.getId();
-            if (id == R.id.botonVistaIndividual) {
-                findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionesListaFragment(idAlbum, idGrupo));
-            } else if (id == R.id.botonNuevaPublicacion) {
-                findNavController(v).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToNuevaPublicacionFragment(idAlbum, idGrupo));
-            } else if (id == R.id.botonOpciones) {
-                menuPopUp();
-            }
-        }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (activity.getHabilitarInteraccion()) {
-            findNavController(view).navigate(PublicacionesFragmentDirections.actionPublicacionesFragmentToPublicacionFragment((int) id, idGrupo, idAlbum));
-        }
-    }
-
-    // Implementación de la interfaz creada para definir las acciones a llevar a cabo al cargar la página.
-    @Override
-    public void onSwipeToRefresh(SwipeRefreshLayout refreshLayout) {
-        if (activity.getHabilitarInteraccion()) {
-            cargarVistaPublicaciones(idAlbum, refreshLayout);
-        }
-        else {
-            refreshLayout.setRefreshing(false);
-        }
-    }
-
-    @Override
-    public void onPositiveClick(String idModal, Integer position, Integer id) {
-        if (activity.getHabilitarInteraccion()) {
-            eliminarAlbum(id);
-        }
-    }
-
+    // Elimina el álbum de forma asíncrona
     public void eliminarAlbum(int idAlbum) {
         executorService.execute(() -> {
             try {
@@ -301,11 +324,13 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         });
     }
 
+    // Abre un modal para confirmar la eliminación del álbum
     public void modalEliminarAlbum(int id) {
         ModalFragment modal = new ModalFragment("eliminarAlbum", null, (int) id, this, "¿Desea eliminar este álbum?", getString(R.string.btnEliminar), getString(R.string.btnCancelar));
         modal.show(activity.getSupportFragmentManager(), "modalEliminarAlbum");
     }
 
+    // Muestra un texto alternativo si no hay publicaciones en la lista
     public void mostrarTextoAlternativo() {
         if (publicaciones.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -317,6 +342,7 @@ public class PublicacionesFragment extends Fragment implements View.OnClickListe
         }
     }
 
+    // Muestra un mensaje de error genérico cuando hay un problema al cargar las publicaciones
     public void errorAlCargarInterfaz() {
         Toast.makeText(getContext(), "Error al cargar las publicaciones.", Toast.LENGTH_SHORT).show();
     }

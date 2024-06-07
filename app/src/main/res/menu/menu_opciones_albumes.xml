@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/verDetallesAlbum"
+        android:id="@+id/verAlbum"
         android:title="@string/verDetallesAlbum"/>
     <item
         android:id="@+id/eliminarAlbum"

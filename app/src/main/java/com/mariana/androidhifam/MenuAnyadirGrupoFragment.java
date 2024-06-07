@@ -21,25 +21,30 @@ import com.mariana.androidhifam.databinding.FragmentMenuAnyadirGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentPublicacionesBinding;
 
 public class MenuAnyadirGrupoFragment extends BottomSheetDialogFragment implements View.OnClickListener {
-    private FragmentMenuAnyadirGrupoBinding binding;
+    private @NonNull FragmentMenuAnyadirGrupoBinding binding;
     private NavController navController;
 
+    // Método llamado para crear y devolver la vista asociada con el fragmento
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         navController = NavHostFragment.findNavController(this);
+        // Inflar y vincular el diseño del fragmento utilizando la clase de enlace generada
         binding = FragmentMenuAnyadirGrupoBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 
+    // Método llamado después de que la vista del fragmento haya sido creada
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Configurar los listeners de clics para los botones del fragmento
         binding.botonGrupoExistente.setOnClickListener(this);
         binding.botonNuevoGrupo.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);
     }
 
+    // Método para manejar los clics en los elementos del fragmento
     @Override
     public void onClick(View v) {
         int id = v.getId();

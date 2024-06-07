@@ -66,41 +66,51 @@ import pojosalbumfamiliar.Grupo;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener, DriveServiceHelper.DriveServiceInitialization, NavigationView.OnNavigationItemSelectedListener {
 
+    // Constantes para las preferencias compartidas (SharedPreferences)
     private static final String PREFS_NAME = "UserPrefs";
     private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
     private static final String KEY_USER_TOKEN = "userToken";
+
+    // Variables para manejar la navegación y la configuración de la barra de la aplicación (AppBar)
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
+    private @NonNull ActivityMainBinding binding;
     private SwipeToRefreshLayout refreshLayout;
     private DriveServiceHelper driveServiceHelper;
     private CCAlbumFamiliar cliente;
     private ArrayList<File> imagenes;
     private ArrayList<Grupo> grupos;
+    // Variable para habilitar o deshabilitar la interacción del usuario
     private boolean habilitarInteraccion = true;
 
-
+    // Interfaz para el layout de refresco al deslizar hacia abajo
     public interface SwipeToRefreshLayout {
         void onSwipeToRefresh(SwipeRefreshLayout refreshLayout);
     }
 
+    // Método que se ejecuta al crear el fragmento
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Establecer el idioma de la aplicación a español
         setLocale(this,"es");
         super.onCreate(savedInstanceState);
-        //EdgeToEdge.enable(this);
+        // Inflar el layout principal y establecerlo como la vista de contenido
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         binding.setLifecycleOwner(this);
         View root = binding.getRoot();
         setContentView(root);
 
+        // Verificar si hay conexión a Internet
         if (internetDisponible()) {
             // Setup del NavHostFragment
             NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.navHostFragment);
             navController = navHostFragment.getNavController();
 
+            // Inicializar el cliente y la lista de imágenes
             cliente = new CCAlbumFamiliar();
             imagenes = new ArrayList<>();
+
+            // Configurar la barra de herramientas (Toolbar)
             View customView = LayoutInflater.from(this).inflate(R.layout.fragment_menu, binding.toolbar, false);
             binding.toolbar.addView(customView);
             binding.toolbar.setNavigationIcon(null);
@@ -113,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             appBarConfiguration = new AppBarConfiguration.Builder(
                     R.id.loginFragment,
                     R.id.registroFragment,
+                    R.id.modificarPublicacion,
                     R.id.gruposFragment,
                     R.id.gruposRecuperablesFragment,
                     R.id.albumesRecuperablesFragment,
@@ -125,13 +136,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     R.id.nuevoGrupoFragment,
                     R.id.nuevoGrupoFragment,
                     R.id.detallesUsuarioFragment,
-                    R.id.detallesAlbumFragment,
-                    R.id.modificarPublicacion
+                    R.id.detallesAlbumFragment
             ).setOpenableLayout(binding.drawerLayout).build();
 
             //ToolBar
+            // Configurar la barra de herramientas (Toolbar) con la navegación
             NavigationUI.setupWithNavController(binding.toolbar, navController, appBarConfiguration);
 
+            // Escuchar cambios en el destino de la navegación para mostrar/ocultar la barra de herramientas
             navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
                 @Override
                 public void onDestinationChanged(@NonNull NavController navController, @NonNull NavDestination navDestination, @Nullable Bundle bundle) {
@@ -142,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             });
 
             // Drawer Layout
+            // Configurar el NavigationView con el NavController
             NavigationUI.setupWithNavController(binding.navView, navController);
             binding.navView.setNavigationItemSelectedListener(this);
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -162,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
             boolean usuarioLoggeado = sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false);
 
+            // Navegar a la pantalla adecuada según el estado de login del usuario
             if (usuarioLoggeado) {
                 navController.navigate(R.id.gruposFragment);
             } else {
@@ -169,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
             }
         }
         else {
+            // Mostrar un mensaje si no hay conexión a Internet y cerrar la aplicación
             Toast.makeText(getApplicationContext(), "Conexión a internet no disponible.", Toast.LENGTH_SHORT).show();
             finish();
 //            ModalFragment modal = new ModalFragment(position, (int) id, this, "¿Desea recuperar este grupo?", getString(R.string.btnRecuperar), getString(R.string.btnCancelar));
@@ -176,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+    // Manejar la navegación hacia arriba
     @Override
     public boolean onSupportNavigateUp() {
         if (habilitarInteraccion) {
@@ -184,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return false;
     }
 
+    // Manejar el refresco de la vista al deslizar hacia abajo
     @Override
     public void onRefresh() {
         if (null != refreshLayout) {
@@ -191,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+    // Inicializar el servicio de Google Drive en un hilo separado
     @Override
     public void initializeDriveService() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -210,16 +228,17 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         });
     }
 
+    // Preparar el menú de opciones (opcional)
     @Override
     public boolean onPrepareOptionsMenu (Menu menu){
         super.onPrepareOptionsMenu(menu);
         return true;
     }
 
-
-
+    // Manejar la selección de elementos del menú de navegación
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Cerrar menú y ejecutar una acción
         binding.drawerLayout.closeDrawer(GravityCompat.START);
         if (habilitarInteraccion) {
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -239,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return true;
     }
 
+    // Mostrar u ocultar la barra de herramientas con o sin animación
     public void mostrarToolbar(boolean mostrar, boolean animar, boolean sentidoAvanzar) {
         if (mostrar) {
             if (animar) {
@@ -300,6 +320,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+    // Manejar el botón de retroceso
     OnBackPressedCallback callback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
@@ -316,10 +337,12 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     };
 
+    // Obtener la instancia del cliente de comunicaciones desde otros fragments
     public CCAlbumFamiliar getCliente() {
         return cliente;
     }
 
+    // Habilitar o deshabilitar la interacción del usuario
     public void setHabilitarInteraccion(boolean habilitarInteraccion) {
         this.habilitarInteraccion = habilitarInteraccion;
         if (habilitarInteraccion) {
@@ -332,23 +355,28 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+    // Método para obtener el estado de habilitación de la interacción desde otros fragments
     public boolean getHabilitarInteraccion() {
         return habilitarInteraccion;
     }
 
+    // Método para obtener la lista de imágenes del directorio de la aplicación
     public ArrayList<File> getImagenes() {
-        getAllImagesFromAppDirectory();
+        getImagenesDelAppDirectory();
         return imagenes;
     }
 
+    // Método para obtener el servicio de conexión con Google Drive DriveServiceHelper
     public DriveServiceHelper getDriveServiceHelper() {
         return driveServiceHelper;
     }
 
+    // Método para establecer el SwipeRefreshLayout
     public void setRefreshLayout(SwipeToRefreshLayout refreshLayout){
         this.refreshLayout = refreshLayout;
     }
 
+    // Método para inicializar el servicio de Google Drive
     private void setDriveService() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
@@ -399,16 +427,17 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         directorio.delete();
     }
 
-    private void getAllImagesFromAppDirectory() {
+    // Método para obtener todas las imágenes del directorio de archivos de la aplicación
+    private void getImagenesDelAppDirectory() {
         imagenes = new ArrayList<>();
-        // Get the directory where your app stores files
-        File directory = getExternalFilesDir(null); // or use getExternalFilesDir(null) for external storage
-        // Get all files in the directory
+        // Obtiene el directorio donde la aplicación almacena los archivos
+        File directory = getExternalFilesDir(null);
+        // Obtiene todos los archivos en el directorio
         File[] files = directory.listFiles();
-        // Check if the directory is not empty
+        // Verifica si el directorio no está vacío
         if (files != null) {
             for (File file : files) {
-                // Check if the file is an image by checking its extension
+                // Verifica si el archivo es una imagen comprobando su extensión y la agrega a la lista de imágenes
                 if (file.isFile() && esImagen(file)) {
                     imagenes.add(file);
                 }
@@ -416,11 +445,13 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         }
     }
 
+    // Método para verificar si un archivo es una imagen basándose en su extensión de archivo
     private boolean esImagen(File file) {
-        // Check the file extension to determine if it's an image
+        // Extensiones de archivo de imágenes admitidas
         String[] imageExtensions = {".jpg", ".jpeg", ".png"};
+        // Obtiene el nombre del archivo y lo convierte a minúsculas para una comparación sin distinción entre mayúsculas y minúsculas
         String fileName = file.getName().toLowerCase();
-
+        // Si el nombre del archivo coincide con alguna de las extensiones de imagen, devuelve true
         for (String extension : imageExtensions) {
             if (fileName.endsWith(extension)) {
                 return true;
@@ -429,6 +460,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return false;
     }
 
+    // Verificar si hay conexión a Internet
     private boolean internetDisponible() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
@@ -438,6 +470,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         return false;
     }
 
+    // Cambiar el idioma de la aplicación
     private static void setLocale(Activity activity, String languageCode) {
         Locale locale = new Locale(languageCode);
         Locale.setDefault(locale);
@@ -447,11 +480,14 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 
+    // Método para obtener el token (id) del usuario desde las preferencias compartidas
     public String getToken() {
         SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        // Devuelve el valor almacenado en SharedPreferences con la clave KEY_USER_TOKEN, o null si no existe
         return sharedPreferences.getString(KEY_USER_TOKEN, null);
     }
 
+    // Cerrar sesión del usuario y navegar a la pantalla de login
     public void cerrarSesion() {
         SharedPreferences sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();

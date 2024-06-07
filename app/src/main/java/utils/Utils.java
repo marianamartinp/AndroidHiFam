@@ -1,4 +1,4 @@
-package com.mariana.androidhifam;
+package utils;
 import android.icu.text.SimpleDateFormat;
 import android.util.Patterns;
 import android.widget.Toast;
@@ -16,49 +16,50 @@ import java.util.regex.Pattern;
 
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 
+// La clase Utils contiene métodos útiles para diversas tareas de la aplicación
 public class Utils {
 
+    // Enumeración que define los posibles resultados de la validación de un EditText
     public enum EnumValidacionEditText {
         VALIDO, FORMATO_NO_VALIDO, ERROR, VACIO, EN_USO
     }
 
+    // Método para hashear una contraseña utilizando la librería BCrypt
     public static String hashearContrasenya(String contrasenyaUsuario) {
         return BCrypt.hashpw(contrasenyaUsuario, BCrypt.gensalt());
     }
 
+    // Método para verificar si una contraseña coincide con su versión hasheada
     public static boolean comprobarContrasenya(String contrasenyaUsuario, String contrasenyaHasheada) {
         return BCrypt.checkpw(contrasenyaUsuario, contrasenyaHasheada);
     }
 
+    // Método para validar un número de teléfono utilizando la librería de Google PhoneNumberUtil
     public static boolean validarNumeroDeTelefono(String telefono) {
         PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
         try {
-            // Parse the number with an empty region code to infer the country code
             Phonenumber.PhoneNumber telefonoProto = phoneUtil.parse(telefono, "");
-
-            // Get the country code
             int codigoPais = telefonoProto.getCountryCode();
-
-            // Get the region code for the country code
             String codigoRegion = phoneUtil.getRegionCodeForCountryCode(codigoPais);
 
             if (codigoRegion == null) {
-                System.err.println("Invalid country code: " + codigoPais);
+                System.err.println("Código de país no válido: " + codigoPais);
                 return false;
             }
-            // Validate the number with the inferred region code
             telefonoProto = phoneUtil.parse(telefono, codigoRegion);
-            return phoneUtil.isValidNumber(telefonoProto); // returns true if valid, false otherwise
+            return phoneUtil.isValidNumber(telefonoProto);
         } catch (NumberParseException e) {
-            System.err.println("NumberParseException was thrown: " + e.toString());
+            System.err.println("NumberParseException lanzada: " + e.toString());
             return false;
         }
     }
 
+    // Método para eliminar espacios y caracteres especiales de un número de teléfono
     public static String limpiarNumeroDeTelefono(String numeroTelefono) {
         return numeroTelefono.replaceAll("[\\s\\-\\(\\)\\.]", "");
     }
 
+    // Método para validar una contraseña utilizando expresiones regulares
     public static boolean validarContrasenya(String contrasenya) {
         String regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
         Pattern pattern = Pattern.compile(regexp);
@@ -68,6 +69,7 @@ public class Utils {
         return pattern.matcher(contrasenya).matches();
     }
 
+    // Método para parsear una cadena de fecha a un objeto Date
     public static Date parsearFechaADate(String fecha) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         sdf.setLenient(false);
@@ -79,12 +81,14 @@ public class Utils {
         }
     }
 
+    // Método para parsear un objeto Date a una cadena de fecha
     public static String parsearDateAString(Date fecha) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         sdf.setLenient(false);
         return sdf.format(fecha);
     }
 
+    // Método para verificar si una dirección de correo electrónico es válida
     public static boolean esEmailValido(CharSequence email) {
         return email != null && Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }

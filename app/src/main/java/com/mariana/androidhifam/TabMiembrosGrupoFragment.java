@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentTabDetallesGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentTabMiembrosGrupoBinding;
 
 import java.util.ArrayList;
@@ -24,18 +23,18 @@ import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
 import pojosalbumfamiliar.UsuarioIntegraGrupo;
+import utils.ItemsListAdapter;
+import utils.ListAdapter;
 
 public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.OnItemClickListener, View.OnClickListener {
 
-    private FragmentTabMiembrosGrupoBinding binding;
+    private @NonNull FragmentTabMiembrosGrupoBinding binding;
     private NavController navController;
     private MainActivity activity;
     private ExecutorService executorService;
@@ -47,9 +46,11 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
     private ArrayList<Usuario> usuarios;
     private ListAdapter<Usuario> adapter;
 
+    // Método de creación
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Inicialización de variables y objetos
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -57,9 +58,10 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         parentFragment = (DetallesGrupoFragment) this.getParentFragment();
     }
 
+    // Método de creación de la vista
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inicialización de vistas y obtención de datos del grupo
         navController = NavHostFragment.findNavController(this);
         binding = FragmentTabMiembrosGrupoBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
@@ -67,13 +69,35 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         return binding.getRoot();
     }
 
+    // Método que se llama cuando la vista se crea completamente
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Carga el grupo y sus miembros
         cargarGrupo();
         cargarMiembrosGrupo();
     }
 
+    // Método para manejar clics en vistas
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonAnyadirUsuario) {
+            anyadirUsuario(grupo);
+        }
+    }
+
+    // Método para manejar clics en elementos de la lista
+    @Override
+    public void onItemClick(Object item, int position, int idButton) {
+        if (activity.getHabilitarInteraccion()) {
+            if (idButton == R.id.iconoEquis) {
+                eliminarUsuario((Usuario) item, position);
+            }
+        }
+    }
+
+    // Método para cargar el grupo
     public void cargarGrupo() {
         executorService.execute(() -> {
             try {
@@ -85,6 +109,7 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         });
     }
 
+    // Método para cargar los miembros del grupo
     public void cargarMiembrosGrupo() {
         executorService.execute(() -> {
             try {
@@ -106,15 +131,7 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         });
     }
 
-    @Override
-    public void onItemClick(Object item, int position, int idButton) {
-        if (activity.getHabilitarInteraccion()) {
-            if (idButton == R.id.iconoEquis) {
-                eliminarUsuario((Usuario) item, position);
-            }
-        }
-    }
-
+    // Método para mostrar un texto alternativo si la lista de miembros está vacía
     public void mostrarTextoAlternativo() {
         if (usuarios.isEmpty()) {
             new Handler().postDelayed(() -> {
@@ -126,6 +143,7 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         }
     }
 
+    // Método para eliminar un usuario del grupo
     public void eliminarUsuario(Usuario item, int position) {
         executorService.execute(() -> {
             try {
@@ -139,6 +157,7 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         });
     }
 
+    // Método para actualizar la lista después de eliminar un usuario
     public void actualizarGrid(int position) {
         usuarios.remove(position);
         adapter.notifyItemRemoved(position);
@@ -146,12 +165,14 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         mostrarTextoAlternativo();
     }
 
+    // Método para manejar excepciones de la clase ExcepcionAlbumFamiliar
     public void manejadorExcepcionAlbumFamiliar(ExcepcionAlbumFamiliar e) {
         String mensaje;
         mensaje = e.getMensajeUsuario();
         mainHandler.post(() -> Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show());
     }
 
+    // Método para añadir un usuario al grupo
     public void anyadirUsuario(Grupo grupo) {
         if (!binding.usuarioFamilia.getText().toString().trim().isEmpty()) {
             String usuario = binding.usuarioFamilia.getText().toString().trim();
@@ -194,7 +215,9 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         }
     }
 
+    // Método para verificar si un usuario ya está insertado en la lista de miembros
     public boolean usuarioYaInsertado(int id) {
+        // Verificar si un usuario ya está insertado en la lista de miembros
         for (Usuario usuario : usuarios) {
             if (id == usuario.getCodUsuario()) {
                 return true;
@@ -203,7 +226,9 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         return false;
     }
 
+    // Método para verificar los permisos del usuario
     public void revisarPermisos() {
+        // Verificar los permisos del usuario y mostrar u ocultar vistas según corresponda
         if (Objects.equals(tokenUsuario, grupo.getUsuarioAdminGrupo().getCodUsuario())) {
             binding.botonAnyadirUsuario.setOnClickListener(this);
             binding.botonAnyadirUsuario.setVisibility(View.VISIBLE);
@@ -212,14 +237,6 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
         else {
             binding.botonAnyadirUsuario.setVisibility(View.INVISIBLE);
             binding.usuarioFamilia.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonAnyadirUsuario) {
-            anyadirUsuario(grupo);
         }
     }
 }

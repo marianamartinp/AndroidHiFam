@@ -35,13 +35,18 @@ import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
 
 public class ModalFragment extends DialogFragment implements DialogInterface.OnDismissListener {
-    private FragmentModalBinding binding;
+    private @NonNull FragmentModalBinding binding;
     private MainActivity activity;
     private CustomModalInterface customModalInterface;
     private String textoModal, botonPositivo, botonNegativo, idModal;
-
     private Integer position, id;
 
+    // Interfaz personalizada para manejar clics en los botones del modal
+    public interface CustomModalInterface {
+        void onPositiveClick(String idModal, Integer position, Integer id);
+    }
+
+    // Constructor de la clase
     public ModalFragment(String idModal, Integer position, Integer id, CustomModalInterface customModalInterface, String textoModal, String botonPositivo, String botonNegativo) {
         this.position = position;
         this.id = id;
@@ -52,21 +57,24 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
         this.idModal = idModal;
     }
 
+    // Método llamado para crear el diálogo
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         binding = FragmentModalBinding.inflate(getLayoutInflater());
         activity = (MainActivity) getActivity();
+        // Crear un constructor de diálogos
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(binding.getRoot());
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(10, 0, 10, 10);
 
+        // Añadir el botón negativo si existe
         if (null != botonNegativo) {
             anyadirBotonNegativo(params);
         }
-
+        // Añadir el botón positivo si existe
         if (null != botonPositivo) {
             anyadirBotonPositivo(params);
         }
@@ -75,29 +83,27 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
         return builder.create();
     }
 
+    // Método llamado cuando la vista del fragmento está a punto de ser destruida
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método llamado cuando el fragmento está a punto de ser visible para el usuario
     @Override
     public void onResume() {
         super.onResume();
+        // Establecer el ancho del diálogo
         Window window = getDialog().getWindow();
         WindowManager.LayoutParams params = window.getAttributes();
         int margin = getResources().getDimensionPixelSize(R.dimen.dialog_margin);
         int screenWidth = getResources().getDisplayMetrics().widthPixels;
         params.width = screenWidth - (2 * margin);
-//        params.height = android.view.WindowManager.LayoutParams.MATCH_PARENT;
         window.setAttributes(params);
     }
 
-
-    public interface CustomModalInterface {
-        void onPositiveClick(String idModal, Integer position, Integer id);
-    }
-
+    // Método para añadir un botón negativo al diálogo
     public void anyadirBotonNegativo(LinearLayout.LayoutParams params) {
         Button negativeButton = (Button) getLayoutInflater().inflate(R.layout.boton_modal, null);
         negativeButton.setText(botonNegativo);
@@ -112,6 +118,7 @@ public class ModalFragment extends DialogFragment implements DialogInterface.OnD
         binding.contenedorBotones.addView(negativeButton);
     }
 
+    // Método para añadir un botón positivo al diálogo
     public void anyadirBotonPositivo(LinearLayout.LayoutParams params) {
         Button positiveButton = (Button) getLayoutInflater().inflate(R.layout.boton_modal, null);
         positiveButton.setText(botonPositivo);

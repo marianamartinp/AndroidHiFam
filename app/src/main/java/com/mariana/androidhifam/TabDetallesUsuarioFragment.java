@@ -1,13 +1,10 @@
 package com.mariana.androidhifam;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,60 +20,57 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.mariana.androidhifam.databinding.FragmentTabDetallesGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentTabDetallesUsuarioBinding;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.Usuario;
+import utils.Utils;
 
 public class TabDetallesUsuarioFragment extends Fragment implements View.OnClickListener, ModalFragment.CustomModalInterface, TextWatcher{
 
-    private FragmentTabDetallesUsuarioBinding binding;
+    private @NonNull FragmentTabDetallesUsuarioBinding binding;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
     private CCAlbumFamiliar cliente;
-    private DetallesUsuarioFragment parentFragment;
     private Usuario usuario;
-    private Integer tokenUsuario, idGrupo;
+    private Integer tokenUsuario;
     private boolean camposModificados;
     private NavController navController;
     private boolean validezNombre = true, validezUsuario = true, validezCorreo = true, validezTelefono = true, validezPrefijo = true;
 
+    // Método de creación
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Inicialización de variables y objetos
         activity = (MainActivity) getActivity();
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
         cliente = new CCAlbumFamiliar();
-        parentFragment = (DetallesUsuarioFragment) this.getParentFragment();
     }
 
+    // Método de creación de la vista
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inicialización de vistas y obtención del token de usuario
         navController = NavHostFragment.findNavController(this);
         binding = FragmentTabDetallesUsuarioBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
+    // Método que se llama cuando la vista se crea completamente
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         activarValidacion();
+        // Configuración de la validación y carga de detalles del usuario
         final View rootView = activity.findViewById(R.id.rootViewUsuario);
         // Registrar un OnGlobalLayoutListener para detectar cambios en la visibilidad del teclado
         rootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -95,6 +89,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         binding.botonCambiarContrasenya.setOnClickListener(this);
         binding.botonEliminarUsuario.setOnClickListener(this);
         binding.botonModificarUsuario.setOnClickListener(this);
+        // Carga de detalles del usuario
         cargarDetallesUsuario();
     }
 
@@ -112,11 +107,12 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         // No precisado
     }
 
+    // Método para manejar clics en vistas
     @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.botonCambiarContrasenya) {
-            Toast.makeText(requireContext(), "Cambiar contraseña.", Toast.LENGTH_SHORT).show();
+            navController.navigate(DetallesUsuarioFragmentDirections.actionDetallesUsuarioFragmentToModificarContrasenyaFragment());
         }
         else if (id == R.id.botonEliminarUsuario) {
             modalEliminarUsuario(tokenUsuario);
@@ -126,9 +122,11 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         }
     }
 
+    // Método para manejar clics en el diálogo modal
     @Override
     public void onPositiveClick(String idModal, Integer position, Integer id) {
         if (activity.getHabilitarInteraccion()) {
+            // Realizar acciones según el ID del modal y la acción realizada
             switch (idModal) {
                 case "eliminarUsuario":
                     if (null != usuario) {
@@ -139,11 +137,13 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         }
     }
 
+    // Método para mostrar el modal de eliminación de usuario
     public void modalEliminarUsuario(int id) {
         ModalFragment modal = new ModalFragment("eliminarUsuario", null, id, this, "¿Desea eliminar su usuario?\nEsta acción será irreversible.", getString(R.string.btnEliminar), getString(R.string.btnCancelar));
         modal.show(activity.getSupportFragmentManager(), "modalEliminarUsuario");
     }
 
+    // Método para cargar los detalles del usuario
     public void cargarDetallesUsuario() {
         executorService.execute(() -> {
             try {
@@ -159,6 +159,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         });
     }
 
+    // Método para actualizar la interfaz con los detalles del usuario
     public void actualizarInterfaz(Usuario usuario) {
         binding.editextUsuario.setText(usuario.getUsuario());
         binding.editextFechaNacimiento.setText(Utils.parsearDateAString(usuario.getFechaNacimiento()));
@@ -169,6 +170,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         binding.editextCorreoElectronico.setText(usuario.getEmail());
     }
 
+    // Método para eliminar un usuario
     public void eliminarUsuario(Usuario usuario) {
         executorService.execute(() -> {
             try {
@@ -183,6 +185,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         });
     }
 
+    // Método para modificar un usuario
     public void modificarUsuario() {
         String nombre = binding.editextNombreCompleto.getText().toString().trim();
         String nombreUsuario = binding.editextUsuario.getText().toString().trim();
@@ -216,7 +219,9 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         }
     }
 
+    // Método para activar la validación de los campos de entrada
     public void activarValidacion() {
+        // Validación del correo electrónico
         binding.editextCorreoElectronico.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -255,6 +260,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
             }
         });
 
+        // Validación del nombre
         binding.editextNombreCompleto.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -270,6 +276,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
             }
         });
 
+        // Validación del nombre de usuario
         binding.editextUsuario.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -303,6 +310,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
             }
         });
 
+        // Validación del prefijo telefónico
         binding.editextPrefijo.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -317,6 +325,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
             }
         });
 
+        // Validación del teléfono considerando el prefijo
         binding.editextTelefono.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -356,6 +365,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         });
     }
 
+    // Método para validar un campo de entrada y mostrar retroalimentación visual
     private void validarEditext(EditText editext, Utils.EnumValidacionEditText valorValidacion) {
         int id = editext.getId();
 
@@ -461,6 +471,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         }
     }
 
+    // Método para verificar si el teclado virtual está oculto o visible
     private boolean tecladoEscondido(View rootView) {
         Rect r = new Rect();
         rootView.getWindowVisibleDisplayFrame(r);
@@ -471,6 +482,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         return alturaTeclado < alturaPantalla * 0.15; // Umbral arbitrario para detectar la visibilidad del teclado
     }
 
+    // Método para eliminar el foco de los campos de entrada
     private void eliminarFocusEditext() {
         // Quitar el enfoque de los campos de entrada
         binding.editextNombreCompleto.clearFocus();
@@ -480,6 +492,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         binding.editextTelefono.clearFocus();
     }
 
+    // Método para verificar si la validación de todos los campos es completa
     public boolean validacionCompleta() {
         if (validezNombre && validezCorreo && validezUsuario && validezTelefono && validezPrefijo) {
             return true;
@@ -487,6 +500,7 @@ public class TabDetallesUsuarioFragment extends Fragment implements View.OnClick
         return false;
     }
 
+    // Método para manejar excepciones de la clase ExcepcionAlbumFamiliar
     public void manejadorExcepcionAlbumFamiliar(ExcepcionAlbumFamiliar e) {
         String mensaje;
         mensaje = e.getMensajeUsuario();

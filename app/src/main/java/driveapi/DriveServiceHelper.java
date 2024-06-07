@@ -33,20 +33,24 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class DriveServiceHelper {
-
     public static final int REQUEST_CODE_WRITE_PERMISSION = 1001;
     private final Executor mExecutor = Executors.newSingleThreadExecutor();
     private final Drive driveService;
     private Context context = null;
 
+    // Interfaz para inicializar el servicio de Google Drive
     public interface DriveServiceInitialization {
         void initializeDriveService();
     }
+
+    // Constructor de la clase
     public DriveServiceHelper(Drive driveService, Context context) {
         this.driveService = driveService;
         this.context = context;
     }
 
+    // Método para listar archivos en una carpeta de Google Drive
+    // Recibe la id de un grupo por el que filtrar
     public void listFiles(int idGrupo) throws RuntimeException {
         String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
         String query = "'" + folderId + "' in parents and trashed = false";
@@ -68,7 +72,7 @@ public class DriveServiceHelper {
         }
     }
 
-
+    // Método para subir un archivo de imagen a Google Drive
     public DatosArchivo uploadImageFile(Uri fileUri, int idGrupo, int idAlbum) throws RuntimeException {
         String folderId = "1mgmVsFktA71OVL2NkcgbSopkfDZofbna";
         File googleFile = null;
@@ -118,7 +122,7 @@ public class DriveServiceHelper {
         return new DatosArchivo(googleFile.getId(), googleFile.getName());
     }
 
-
+    // Método para eliminar un archivo de Google Drive
     public Task<Void> deleteFile(String fileId) {
         TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
         mExecutor.execute(() -> {
@@ -132,7 +136,7 @@ public class DriveServiceHelper {
         return taskCompletionSource.getTask();
     }
 
-
+    // Método para descargar un archivo de Google Drive al directorio de datos de la aplicación
     public void downloadFileToAppDataDirectory(String fileId, String fileName) throws RuntimeException {
         try {
             // Get the application's internal files directory
@@ -161,7 +165,7 @@ public class DriveServiceHelper {
         }
     }
 
-
+    // Método privado para descargar un archivo utilizando MediaStore
     private Task<Void> downloadFileUsingMediaStore(Drive driveService, String fileId, String fileName) throws RuntimeException {
         TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
         mExecutor.execute(() -> {
@@ -200,7 +204,7 @@ public class DriveServiceHelper {
         return taskCompletionSource.getTask();
     }
 
-
+    // Método para crear un intent para seleccionar un archivo
     public Intent createFilePickerIntent() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -209,8 +213,7 @@ public class DriveServiceHelper {
         return intent;
     }
 
-
-
+    // Método para obtener el nombre de un archivo a partir de su URI
     private String getFileName(Uri uri) {
         String result = null;
         if (uri.getScheme().equals("content")) {
@@ -229,7 +232,7 @@ public class DriveServiceHelper {
         return result;
     }
 
-
+    // Método para verificar si un archivo es necesario
     public boolean archivoNecesario(String str, int number) {
         // Check if the string has at least three characters
         if (str != null && str.length() >= 3) {
@@ -245,6 +248,7 @@ public class DriveServiceHelper {
         return false;
     }
 
+    // Método estático para generar un hash basado en el tiempo actual
     public static String generateTimeHash() throws NoSuchAlgorithmException {
         long currentTimeMillis = System.currentTimeMillis();
         String input = String.valueOf(currentTimeMillis);

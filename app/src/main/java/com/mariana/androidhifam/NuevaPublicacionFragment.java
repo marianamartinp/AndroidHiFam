@@ -41,7 +41,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 public class NuevaPublicacionFragment extends Fragment implements View.OnClickListener {
 
-    private NuevaPublicacionFragmentArgs nuevaPublicacionFragmentArgs;
+    private @NonNull NuevaPublicacionFragmentArgs nuevaPublicacionFragmentArgs;
     private @NonNull FragmentNuevaPublicacionBinding binding;
     private CCAlbumFamiliar cliente;
     private Integer idAlbum, idGrupo, tokenUsuario;
@@ -51,9 +51,11 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
     private ExecutorService executorService;
     private Handler mainHandler;
 
+    // Método onCreate para la inicialización del fragmento
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Obtener los argumentos pasados al fragmento
         if (getArguments() != null) {
             nuevaPublicacionFragmentArgs = NuevaPublicacionFragmentArgs.fromBundle(getArguments());
             idAlbum = nuevaPublicacionFragmentArgs.getIdAlbum();
@@ -64,30 +66,52 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         mainHandler = new Handler(Looper.getMainLooper());
     }
 
+    // Método onCreateView para inflar el diseño de la vista del fragmento
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        activity.findViewById(R.id.refreshLayout).setEnabled(false);
         navController = NavHostFragment.findNavController(this);
+        // Inflar el diseño del fragmento
         binding = FragmentNuevaPublicacionBinding.inflate(inflater, container, false);
         cliente = activity.getCliente();
         tokenUsuario = Integer.parseInt(activity.getToken());
         return binding.getRoot();
     }
 
+    // Método onViewCreated para configurar la vista después de que se haya creado
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         binding.botonCrearPublicacion.setOnClickListener(this);
         binding.cardView.setOnClickListener(this);
         binding.botonAtras.setOnClickListener(this);
+        // Cargar el título del álbum
         cargarTituloAlbum(idAlbum);
     }
 
+    // Método onDestroyView para limpiar la vista cuando el fragmento está destruido
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
     }
 
+    // Método onClick para manejar los clics en los elementos de la vista
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        if (id == R.id.botonCrearPublicacion) {
+            crearNuevaPublicacion(idAlbum, tokenUsuario);
+        }
+        else if (id == R.id.cardView) {
+            seleccionarImagen();
+        }
+        else if (id == R.id.botonAtras) {
+            navController.popBackStack();
+        }
+    }
+
+    // Método para cargar el título del álbum
     public void cargarTituloAlbum(int idAlbum) {
         executorService.execute(() ->  {
             try {
@@ -100,13 +124,16 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
 
     }
 
+    // Método para crear una nueva publicación llamando a métodos secundarios
     public void crearNuevaPublicacion(Integer idAlbum, Integer tokenUsuario) {
         String tituloPublicacion = binding.tituloPublicacion.getText().toString().trim();
         String textoPublicacion = binding.textoPublicacion.getText().toString().trim();
         if (!tituloPublicacion.isEmpty() && !textoPublicacion.isEmpty() & null != uriImagen) {
             executorService.execute(() -> {
                 try {
+                    // Subir la imagen a Google Drive de forma asíncrona
                     DatosArchivo datosArchivo = activity.getDriveServiceHelper().uploadImageFile(uriImagen, idGrupo, idAlbum);
+                    // Insertar la nueva publicación en el álbum
                     Publicacion publicacion = construirPublicacion(datosArchivo, tokenUsuario);
                     cliente.insertarPublicacion(publicacion);
                     mainHandler.post(() -> {
@@ -126,6 +153,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         }
     }
 
+    // Método para construir una nueva publicación con los datos de la imagen
     public Publicacion construirPublicacion(DatosArchivo datosArchivo, int tokenUsuario) throws ExcepcionAlbumFamiliar {
         String titulo = binding.tituloPublicacion.getText().toString();
         String texto = binding.textoPublicacion.getText().toString();
@@ -144,12 +172,15 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
         return null;
     }
 
+    // Método para seleccionar una imagen de la galería
     public void seleccionarImagen() {
+        // Crear un intent para abrir la galería de imágenes
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType("image/*");
         lanzadorSelectorArchivo.launch(intent);
     }
 
+    // Lanzador para la selección de archivos de la galería
     ActivityResultLauncher<Intent> lanzadorSelectorArchivo = registerForActivityResult(
         new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
@@ -158,6 +189,7 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
                     Intent data = result.getData();
                     uriImagen = data.getData();
                     if (uriImagen != null) {
+                        // Ocultar el texto de "Más" y mostrar la imagen seleccionada
                         binding.textoMas.setVisibility(View.INVISIBLE);
                         binding.imagen.setImageURI(uriImagen);
                     }
@@ -165,20 +197,4 @@ public class NuevaPublicacionFragment extends Fragment implements View.OnClickLi
             }
         }
     );
-
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.botonCrearPublicacion) {
-            crearNuevaPublicacion(idAlbum, tokenUsuario);
-        }
-        else if (id == R.id.cardView) {
-            seleccionarImagen();
-        }
-        else if (id == R.id.botonAtras) {
-            navController.popBackStack();
-        }
-    }
-
-
 }

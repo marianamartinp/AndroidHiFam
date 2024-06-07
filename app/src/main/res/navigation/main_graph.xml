@@ -98,8 +98,8 @@
             app:argType="boolean"
             android:defaultValue="false" />
         <action
-            android:id="@+id/action_gruposFragment_to_detallesUsuarioFragment"
-            app:destination="@id/detallesUsuarioFragment"
+            android:id="@+id/action_gruposFragment_to_detallesGrupoFragment"
+            app:destination="@id/detallesGrupoFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -145,6 +145,24 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"
             app:popUpTo="@id/albumesFragment" />
+        <action
+            android:id="@+id/action_albumesFragment_to_detallesAlbumFragment"
+            app:destination="@id/detallesAlbumFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+        <action
+            android:id="@+id/action_albumesFragment_to_detallesGrupoFragment2"
+            app:destination="@id/detallesGrupoFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right">
+            <argument
+                android:name="paginaActual"
+                android:defaultValue="1" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/publicacionesFragment"
@@ -213,16 +231,14 @@
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"
-            app:popUpTo="@id/gruposFragment"/>
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_publicacionFragment_to_detallesAlbumFragment"
             app:destination="@id/detallesAlbumFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"
-            app:popUpTo="@id/albumesFragment"/>
+            app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_publicacionFragment_to_modificarPublicacionFragment"
             app:destination="@id/modificarPublicacionFragment"
@@ -300,6 +316,9 @@
         <argument
             android:name="idGrupo"
             app:argType="integer" />
+        <action
+            android:id="@+id/action_publicacionesListaFragment_to_detallesAlbumFragment"
+            app:destination="@id/detallesAlbumFragment" />
     </fragment>
     <fragment
         android:id="@+id/nuevaPublicacionFragment"
@@ -361,6 +380,10 @@
         <argument
             android:name="idGrupo"
             app:argType="integer"/>
+        <argument
+            android:name="paginaActual"
+            app:argType="integer"
+            android:defaultValue="0" />
     </fragment>
     <fragment
         android:id="@+id/albumesRecuperablesFragment"
@@ -396,6 +419,9 @@
                 android:name="animacionToolbar"
                 android:defaultValue="1" />
         </action>
+        <action
+            android:id="@+id/action_detallesUsuarioFragment_to_modificarContrasenyaFragment"
+            app:destination="@id/modificarContrasenyaFragment" />
     </fragment>
     <fragment
         android:id="@+id/tabDetallesUsuarioFragment"
@@ -451,4 +477,9 @@
             android:name="idAlbum"
             app:argType="integer" />
     </fragment>
+    <dialog
+        android:id="@+id/modificarContrasenyaFragment"
+        android:name="com.mariana.androidhifam.ModificarContrasenyaFragment"
+        android:label="fragment_modificar_contrasenya"
+        tools:layout="@layout/fragment_modificar_contrasenya" />
 </navigation>
