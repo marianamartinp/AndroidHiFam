@@ -1,33 +1,30 @@
 package com.mariana.androidhifam;
 
-import static androidx.navigation.Navigation.findNavController;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+
 import com.mariana.androidhifam.databinding.FragmentNuevaPublicacionBinding;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import driveapi.DatosArchivo;
@@ -35,9 +32,6 @@ import pojosalbumfamiliar.Archivo;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.Usuario;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 
 public class NuevaPublicacionFragment extends Fragment implements View.OnClickListener {
 

@@ -2,37 +2,20 @@ package com.mariana.androidhifam;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.widget.TextViewCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 
-import android.text.InputFilter;
-import android.view.ContextThemeWrapper;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.Toast;
-
-import com.mariana.androidhifam.databinding.FragmentIngresoGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentModalBinding;
-
-import java.util.concurrent.atomic.AtomicReference;
-
-import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
-import pojosalbumfamiliar.SolicitudEntradaGrupo;
-import pojosalbumfamiliar.Usuario;
 
 public class ModalFragment extends DialogFragment implements DialogInterface.OnDismissListener {
     private @NonNull FragmentModalBinding binding;

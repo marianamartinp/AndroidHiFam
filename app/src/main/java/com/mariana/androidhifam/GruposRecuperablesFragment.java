@@ -1,7 +1,5 @@
 package com.mariana.androidhifam;
 
-import static androidx.navigation.Navigation.findNavController;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;

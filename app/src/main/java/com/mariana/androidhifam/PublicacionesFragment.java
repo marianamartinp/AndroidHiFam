@@ -3,14 +3,6 @@ package com.mariana.androidhifam;
 import static androidx.navigation.Navigation.findNavController;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -25,6 +17,13 @@ import android.widget.GridView;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.mariana.androidhifam.databinding.FragmentPublicacionesBinding;
 
 import java.io.File;
@@ -37,8 +36,8 @@ import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Album;
-import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
+import pojosalbumfamiliar.Publicacion;
 import utils.GridAdapter;
 
 public class PublicacionesFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemClickListener, MainActivity.SwipeToRefreshLayout, ModalFragment.CustomModalInterface {

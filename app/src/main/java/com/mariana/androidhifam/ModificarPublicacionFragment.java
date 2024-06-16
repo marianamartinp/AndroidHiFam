@@ -28,7 +28,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.FragmentModificarPublicacionBinding;
-import com.mariana.androidhifam.databinding.FragmentNuevaPublicacionBinding;
 
 import java.io.File;
 import java.util.ArrayList;

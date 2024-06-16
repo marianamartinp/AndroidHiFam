@@ -1,19 +1,8 @@
 package com.mariana.androidhifam;
 
-import static androidx.navigation.Navigation.findNavController;
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -25,6 +14,15 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.PopupMenu;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentResultListener;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.mariana.androidhifam.databinding.FragmentPublicacionBinding;
 
@@ -108,6 +106,17 @@ public class PublicacionFragment extends Fragment implements View.OnClickListene
             cargarAlbum(idAlbum);
             cargarVistaPublicacion(idPublicacion, idAlbum, null);
         }
+
+        // Listener para recargar los comentarios cuando se reciba el flag del DialogFragment pra nuevos comentarios
+        getParentFragmentManager().setFragmentResultListener("requestKey", this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+                boolean recargarComentarios = result.getBoolean("recargarComentarios");
+                if (recargarComentarios) {
+                    cargarComentarios(idPublicacion, null);
+                }
+            }
+        });
     }
 
     // Método onDestroyView para limpiar la vista cuando el fragmento está destruido

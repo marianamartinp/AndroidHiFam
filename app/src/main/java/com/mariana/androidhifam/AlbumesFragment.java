@@ -3,14 +3,6 @@ package com.mariana.androidhifam;
 import static androidx.navigation.Navigation.findNavController;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.view.ContextMenu;
@@ -27,6 +19,13 @@ import android.widget.GridView;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.mariana.androidhifam.databinding.FragmentAlbumesBinding;
 
 import java.io.File;
@@ -38,8 +37,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Album;
+import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 import utils.GridAdapter;
 
@@ -208,18 +207,23 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
             grupo = cliente.leerGrupo(idGrupo);
             mainHandler.post(() -> {
                 cargarTituloGrupo();
-                if (Objects.equals(tokenUsuario, grupo.getUsuarioAdminGrupo().getCodUsuario())) {
-                    binding.botonUsuarios.setVisibility(View.VISIBLE);
-                }
-                else {
-                    binding.botonUsuarios.setVisibility(View.INVISIBLE);
-                }
+                visibilizarSolicitudes();
             });
         }catch (ExcepcionAlbumFamiliar e) {
             mainHandler.post(this::errorAlCargarInterfaz);
         }
         finally {
             latch.countDown();
+        }
+    }
+
+    // Método para aprobar la visibilidad de las solicitudes del grupo
+    public void visibilizarSolicitudes() {
+        if (Objects.equals(tokenUsuario, grupo.getUsuarioAdminGrupo().getCodUsuario())) {
+            binding.botonUsuarios.setVisibility(View.VISIBLE);
+        }
+        else {
+            binding.botonUsuarios.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -304,6 +308,7 @@ public class AlbumesFragment extends Fragment implements View.OnClickListener, V
 
     // Método para resumir la vista de álbumes
     public void resumirVistaAlbumes(Integer idGrupo) {
+        visibilizarSolicitudes();
         activity.setHabilitarInteraccion(false);
         Animation parpadeo = AnimationUtils.loadAnimation(getContext(), R.anim.parpadeo);
         binding.gridView.startAnimation(parpadeo);

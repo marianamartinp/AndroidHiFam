@@ -103,7 +103,7 @@ public class AlbumesRecuperablesFragment extends Fragment implements View.OnCrea
         // Listener para manejar el clic en los ítems del GridView
         binding.gridView.setOnItemClickListener(this);
         // Cargo los datos en la vista.
-        cargarVistaAlbumes(tokenUsuario, idGrupo, refreshLayout);
+        cargarVistaAlbumes(tokenUsuario, idGrupo, null);
     }
 
     // Método llamado al destruir la vista del Fragment

@@ -1,12 +1,8 @@
 package utils;
 
-import static androidx.navigation.Navigation.findNavController;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,20 +10,15 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.mariana.androidhifam.R;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.*;
+import pojosalbumfamiliar.Album;
+import pojosalbumfamiliar.Grupo;
+import pojosalbumfamiliar.Publicacion;
 
 public class GridAdapter<T> extends BaseAdapter {
     private Context context;

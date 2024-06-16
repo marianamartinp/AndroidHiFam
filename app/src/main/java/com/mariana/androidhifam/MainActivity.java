@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                         .setApplicationName("HiFam!")
                         .build(), this);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                Toast.makeText(this, "Error al conectar con Google Drive.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -379,13 +379,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     // Método para inicializar el servicio de Google Drive
     private void setDriveService() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            try {
-                initializeDriveService();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        executor.execute(this::initializeDriveService);
     }
 
     // Métodos comunes

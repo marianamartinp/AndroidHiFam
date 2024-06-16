@@ -1,7 +1,7 @@
 package utils;
+
 import android.icu.text.SimpleDateFormat;
 import android.util.Patterns;
-import android.widget.Toast;
 
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
@@ -11,10 +11,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 
 // La clase Utils contiene métodos útiles para diversas tareas de la aplicación
 public class Utils {

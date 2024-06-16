@@ -1,6 +1,12 @@
 package com.mariana.androidhifam;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -8,13 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
-import android.os.Handler;
-import android.os.Looper;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.mariana.androidhifam.databinding.FragmentTabMiembrosGrupoBinding;
 
@@ -35,7 +34,6 @@ import utils.ListAdapter;
 public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.OnItemClickListener, View.OnClickListener {
 
     private @NonNull FragmentTabMiembrosGrupoBinding binding;
-    private NavController navController;
     private MainActivity activity;
     private ExecutorService executorService;
     private Handler mainHandler;
@@ -62,7 +60,6 @@ public class TabMiembrosGrupoFragment extends Fragment implements ListAdapter.On
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inicialización de vistas y obtención de datos del grupo
-        navController = NavHostFragment.findNavController(this);
         binding = FragmentTabMiembrosGrupoBinding.inflate(inflater, container, false);
         tokenUsuario = Integer.parseInt(activity.getToken());
         idGrupo = parentFragment.getGrupoId();

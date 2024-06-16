@@ -3,14 +3,6 @@ package com.mariana.androidhifam;
 import static androidx.navigation.Navigation.findNavController;
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -18,25 +10,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.mariana.androidhifam.databinding.FragmentNuevoAlbumBinding;
-import com.mariana.androidhifam.databinding.FragmentNuevoGrupoBinding;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
+import com.mariana.androidhifam.databinding.FragmentNuevoAlbumBinding;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Album;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
 import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Usuario;
-import pojosalbumfamiliar.UsuarioIntegraGrupo;
 
 public class NuevoAlbumFragment extends Fragment implements View.OnClickListener {
     private @NonNull NuevoAlbumFragmentArgs nuevoAlbumFragmentArgs;

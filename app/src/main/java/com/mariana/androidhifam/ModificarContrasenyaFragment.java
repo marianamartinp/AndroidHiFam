@@ -20,19 +20,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.DialogFragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.mariana.androidhifam.databinding.FragmentModificarContrasenyaBinding;
-import com.mariana.androidhifam.databinding.FragmentNuevoComentarioBinding;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import ccalbumfamiliar.CCAlbumFamiliar;
-import pojosalbumfamiliar.Comentario;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Publicacion;
 import pojosalbumfamiliar.Usuario;
 import utils.Utils;
 

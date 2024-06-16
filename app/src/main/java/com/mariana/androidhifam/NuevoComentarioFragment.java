@@ -14,10 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
 
-import com.mariana.androidhifam.databinding.FragmentIngresoGrupoBinding;
 import com.mariana.androidhifam.databinding.FragmentNuevoComentarioBinding;
 
 import java.util.concurrent.ExecutorService;
@@ -26,9 +23,7 @@ import java.util.concurrent.Executors;
 import ccalbumfamiliar.CCAlbumFamiliar;
 import pojosalbumfamiliar.Comentario;
 import pojosalbumfamiliar.ExcepcionAlbumFamiliar;
-import pojosalbumfamiliar.Grupo;
 import pojosalbumfamiliar.Publicacion;
-import pojosalbumfamiliar.SolicitudEntradaGrupo;
 import pojosalbumfamiliar.Usuario;
 
 public class NuevoComentarioFragment extends DialogFragment implements View.OnClickListener, DialogInterface.OnDismissListener {
@@ -124,8 +119,12 @@ public class NuevoComentarioFragment extends DialogFragment implements View.OnCl
                 comentario.setPublicacionTieneComentario(publicacion);
                 comentario.setUsuarioCreaComentario(usuario);
                 comentario.setTexto(binding.editableTexto.getText().toString().trim());
-                // Inserta el comentario utilizando el cliente del álbum familiar.
+                // Inserta el comentario utilizando el cliente del álbum familiar
                 cliente.insertarComentario(comentario);
+                // Informa al fragment de la publicación para que recargue los comentarios
+                Bundle result = new Bundle();
+                result.putBoolean("recargarComentarios", true);
+                getParentFragmentManager().setFragmentResult("requestKey", result);
                 mainHandler.post(() -> {
                     Toast.makeText(requireContext(), "Se ha enviado tu comentario.", Toast.LENGTH_SHORT).show();
                     dismiss();
